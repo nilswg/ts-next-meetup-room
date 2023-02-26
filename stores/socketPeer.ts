@@ -1,4 +1,4 @@
-import type { RootStore } from '.'
+import type { CreateStore } from '.'
 import { io } from 'socket.io-client'
 import type { Socket } from 'socket.io-client'
 import type { Peer, MediaConnection } from 'peerjs'
@@ -28,10 +28,7 @@ export type SocketPeerStore = {
   leaveMeeupRoom: () => void
 }
 
-export const createSocketPeerStore = (
-  set: (f: (s: RootStore) => Partial<RootStore>) => void,
-  get: () => RootStore
-): SocketPeerStore => ({
+export const createSocketPeerStore: CreateStore<SocketPeerStore> = (set, get) => ({
   socket: null,
   peer: null,
   peerId: '',

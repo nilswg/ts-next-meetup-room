@@ -1,4 +1,4 @@
-import type { RootStore } from '.'
+import type { CreateStore } from '.'
 
 export type UserCamera = {
   muted: boolean
@@ -9,10 +9,7 @@ export type UserCamera = {
   showCamera: (roomId: string) => void
 }
 
-export const createUserCameraStore = (
-  set: (f: (s: RootStore) => Partial<RootStore>) => void,
-  get: () => RootStore
-): UserCamera => ({
+export const createUserCameraStore: CreateStore<UserCamera> = (set, get) => ({
   muted: true,
   camera: true,
   setMuted: (muted: boolean) => {

@@ -1,14 +1,11 @@
-import type { RootStore } from '.'
+import type { CreateStore } from '.'
 
 export type UserStore = {
   userId: string
   setUserId: (userId: string) => void
 }
 
-export const createUserStore = (
-  set: (f: (s: RootStore) => Partial<RootStore>) => void,
-  get: () => RootStore
-): UserStore => ({
+export const createUserStore: CreateStore<UserStore> = (set, get) => ({
   userId: 'Me',
   setUserId: (userId: string) => {
     set(() => ({ userId }))

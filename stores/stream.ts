@@ -1,4 +1,4 @@
-import type { RootStore } from '.'
+import type { CreateStore } from '.'
 
 export type RemoteStream = {
   id: string
@@ -15,10 +15,7 @@ export type StreamStore = {
   removeUserStream: () => void
 }
 
-export const createStreamStore = (
-  set: (f: (s: RootStore) => Partial<RootStore>) => void,
-  get: () => RootStore
-): StreamStore => ({
+export const createStreamStore: CreateStore<StreamStore> = (set, get) => ({
   userStream: null,
   remoteStreams: [],
   loading: false,
