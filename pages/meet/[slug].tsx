@@ -11,12 +11,20 @@ const Meet = () => {
   const {
     loading,
     error,
+    userId,
     userStream,
     getUserStream,
     removeUserStream,
     enterMeeupRoom,
     remoteStreams,
     socket,
+    peerId,
+    camera,
+    muted,
+    setMuted,
+    setCamera,
+    hideCamera,
+    showCamera,
   } = useStores((state) => state)
 
   useEffect(() => {
@@ -31,16 +39,31 @@ const Meet = () => {
   }, [])
 
   const reconnect = () => {
-    /**
-     * io、socket、peer 所有連線配置完成後，請求加入房間。
-     */
-    removeUserStream()
+    if (!!userStream) {
+      removeUserStream()
+    }
     getUserStream()
-    // socket.emit('join-room', roomId, 'Nilson')
   }
 
   const remove = () => {
     removeUserStream()
+  }
+
+  const handleCamera = async() => {
+    if (!roomId || Array.isArray(roomId)) {
+      alert('roomid is empty or invalid')
+      return
+    }
+    if (!socket) {
+      alert('no socket')
+      return
+    }
+    if (camera) {
+      hideCamera(roomId)
+    } else {
+      // 重新取得
+      showCamera(roomId)
+    }
   }
 
   const letsMeet = () => {
@@ -55,11 +78,11 @@ const Meet = () => {
     <div className="">
       <h1 className="pt-[5rem] text-white">Meet | {roomId}</h1>
       <div className="grid auto-rows-[300px] grid-cols-[repeat(auto-fill,_300px)]">
-        {remoteStreams.map((s) => (
-          <VideoBox key={s.id} stream={s.stream}></VideoBox>
-        ))}
         {error && <Error />}
-        {loading ? <Loading /> : <VideoBox stream={userStream!} />}
+        {loading ? <Loading /> : <VideoBox stream={userStream!} muted={muted} username={userId}/>}
+        {remoteStreams.map((s) => (
+          <VideoBox key={s.id} stream={s.stream} muted={s.muted} username={s.id}></VideoBox>
+        ))}
       </div>
 
       <button
@@ -74,6 +97,12 @@ const Meet = () => {
         className="w-[150px] border-[1px] border-white py-2 px-6 text-white disabled:border-gray-600 disabled:text-gray-600"
       >
         Remove
+      </button>
+      <button
+        onClick={handleCamera}
+        className="w-[150px] border-[1px] border-white py-2 px-6 text-white disabled:border-gray-600 disabled:text-gray-600"
+      >
+        {camera ? 'HideCamera' : 'OpenCamera'}
       </button>
       <button
         onClick={letsMeet}
