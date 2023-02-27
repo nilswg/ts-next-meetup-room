@@ -11,27 +11,25 @@ const Meet = () => {
   const {
     loading,
     error,
-    userId,
     userStream,
-    getUserStream,
+    createUserStream,
     removeUserStream,
     enterMeeupRoom,
     remoteStreams,
+    userId,
+    myPeerId,
     socket,
-    peerId,
-    camera,
-    muted,
-    setMuted,
-    setCamera,
-    hideCamera,
-    showCamera,
+    audio,
+    setUserAudio,
+    video,
+    setUserVideo,
   } = useStores((state) => state)
 
   useEffect(() => {
     if (typeof navigator === 'undefined') return
     if (!doOnce?.current) {
       doOnce.current = true
-      getUserStream()
+      createUserStream()
     }
     return () => {
       removeUserStream()
@@ -42,28 +40,19 @@ const Meet = () => {
     if (!!userStream) {
       removeUserStream()
     }
-    getUserStream()
+    createUserStream()
   }
 
   const remove = () => {
     removeUserStream()
   }
 
-  const handleCamera = async() => {
-    if (!roomId || Array.isArray(roomId)) {
-      alert('roomid is empty or invalid')
-      return
-    }
-    if (!socket) {
-      alert('no socket')
-      return
-    }
-    if (camera) {
-      hideCamera(roomId)
-    } else {
-      // 重新取得
-      showCamera(roomId)
-    }
+  const handleUserVedio = () => {
+    setUserVideo(!video)
+  }
+
+  const handleUserAudio = () => {
+    setUserAudio(!audio)
   }
 
   const letsMeet = () => {
@@ -79,9 +68,13 @@ const Meet = () => {
       <h1 className="pt-[5rem] text-white">Meet | {roomId}</h1>
       <div className="grid auto-rows-[300px] grid-cols-[repeat(auto-fill,_300px)]">
         {error && <Error />}
-        {loading ? <Loading /> : <VideoBox stream={userStream!} muted={muted} username={userId}/>}
+        {loading ? (
+          <Loading />
+        ) : (
+          <VideoBox stream={userStream!} peerId={myPeerId} username={userId}/>
+        )}
         {remoteStreams.map((s) => (
-          <VideoBox key={s.id} stream={s.stream} muted={s.muted} username={s.id}></VideoBox>
+          <VideoBox key={s.id} stream={s.stream} peerId={s.id} username={s.userId}></VideoBox>
         ))}
       </div>
 
@@ -99,10 +92,16 @@ const Meet = () => {
         Remove
       </button>
       <button
-        onClick={handleCamera}
+        onClick={handleUserVedio}
         className="w-[150px] border-[1px] border-white py-2 px-6 text-white disabled:border-gray-600 disabled:text-gray-600"
       >
-        {camera ? 'HideCamera' : 'OpenCamera'}
+        {video ? 'Video OFF' : 'Video ON'}
+      </button>
+      <button
+        onClick={handleUserAudio}
+        className="w-[150px] border-[1px] border-white py-2 px-6 text-white disabled:border-gray-600 disabled:text-gray-600"
+      >
+        {audio ? 'Audio OFF' : 'Audio ON'}
       </button>
       <button
         onClick={letsMeet}

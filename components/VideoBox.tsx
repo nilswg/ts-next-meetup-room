@@ -1,7 +1,13 @@
 import React, { useCallback, useEffect, useRef } from 'react'
 import { TbPlugConnectedX } from 'react-icons/tb'
 
-const VideoBox = ({ stream, muted=true, username="" }: { stream: MediaStream, muted:boolean, username:string }) => {
+type Props = {
+  peerId: string
+  stream: MediaStream
+  username: string
+}
+
+const VideoBox = ({ peerId, stream, username = '' }: Props) => {
   const ref = useRef<HTMLVideoElement | null>(null)
 
   const playVideo = useCallback(() => {
@@ -28,18 +34,20 @@ const VideoBox = ({ stream, muted=true, username="" }: { stream: MediaStream, mu
   }, [])
 
   return (
-    <div className='relative'>
-      <h1 className='text-gray-400 absolute top-0 left-4'>{username}</h1>
+    <div className="relative">
+      <div className="absolute top-0 left-4">
+        <h1 className="text-3xl text-gray-400">{peerId.slice(0, 6)}</h1>
+        <h1 className="text-5xl text-sky-400">{username}</h1>
+      </div>
       {stream ? (
         <video
           ref={ref}
           className="h-full w-full bg-black object-cover"
           src=""
-          muted={muted}
         ></video>
       ) : (
-        <div className="h-full w-full bg-black flex justify-center items-center">
-          <TbPlugConnectedX className='w-20 h-20 text-gray-700'/>
+        <div className="flex h-full w-full items-center justify-center bg-black">
+          <TbPlugConnectedX className="h-20 w-20 text-gray-700" />
         </div>
       )}
     </div>
