@@ -1,14 +1,22 @@
 import { create } from 'zustand'
 import { createStreamStore, type StreamStore } from '@/stores/userStream'
-import { createSocketPeerStore, type SocketPeerStore } from '@/stores/socketPeer'
+import {
+  createSocketPeerStore,
+  type SocketPeerStore,
+} from '@/stores/socketPeer'
+import {
+  createScreenStore,
+  type ScreenStore,
+} from './userScreen'
 
 /**
  * 透過 Sub-Store 集合為 Store
  */
-export type Store = StreamStore & SocketPeerStore
+export type Store = StreamStore & SocketPeerStore & ScreenStore
 
 export const useStores = create<Store>((set, get, api) => ({
   ...createStreamStore(set, get),
+  ...createScreenStore(set, get),
   ...createSocketPeerStore(set, get),
 }))
 

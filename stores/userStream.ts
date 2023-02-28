@@ -1,13 +1,14 @@
-import type { CreateStore } from '@/stores'
+import { removeStream, setStreamVideo, setStreamAudio } from '@/lib/stream'
+import { CreateStore } from '@/stores'
 
 export type StreamStore = {
-  // userId: string
-  userStream: MediaStream | null
-  video: boolean
-  audio: boolean
-  loading: boolean
-  error: string
-  // setUserId: (userId: string) => void
+  user: {
+    stream: MediaStream | null
+    loading: boolean
+    error: string
+    video: boolean
+    audio: boolean
+  }
   createUserStream: () => void
   removeUserStream: () => void
   setUserVideo: (video: boolean) => void
@@ -15,57 +16,46 @@ export type StreamStore = {
 }
 
 export const createStreamStore: CreateStore<StreamStore> = (set, get) => ({
-  // userId: '',
-  userStream: null,
-  video: true,
-  audio: true,
-  loading: false,
-  error: '',
-  // setUserId: (userId: string) => {
-  //   set(() => ({ userId }))
-  // },
+  user: {
+    stream: null,
+    loading: false,
+    error: '',
+    video: true,
+    audio: true,
+  },
   createUserStream: async () => {
-    set((state) => ({ loading: true }))
-
+    set((state) => ({ user: { ...state.user, loading: true } }))
     try {
-
       // 這邊一定要全部開啟，意思為取得音源與視訊源。
       const stream: MediaStream = await navigator.mediaDevices.getUserMedia({
         video: true,
         audio: true,
       })
-      console.log('createUserStream');
-      set((state) => ({ userStream: stream }))
+      console.log('createUserStream')
 
       // 這邊根據當前設置，選擇是否呈現畫面、是否靜音
-      const {setUserAudio, setUserVideo, video, audio} = get()
-      setUserAudio(audio)
-      setUserVideo(video)
+      setStreamVideo(stream, get().user.video)
+      setStreamAudio(stream, get().user.audio)
 
+      set((state) => ({ user: { ...state.user, stream } }))
     } catch (error) {
-      set((state) => ({ error: 'GetUserMedia Failed' }))
+      set((state) => ({
+        user: { ...state.user, error: 'GetUserMedia Failed' },
+      }))
     } finally {
-      set((state) => ({ loading: false }))
+      set((state) => ({ user: { ...state.user, loading: false } }))
     }
   },
   removeUserStream: () => {
-    get()
-      .userStream?.getTracks()
-      .forEach((track) => track.stop())
-    set((state) => ({ userStream: null, error:'' }))
+    removeStream(get().user.stream)
+    set((state) => ({ user: { ...state.user, error: '', stream: null } }))
   },
   setUserVideo: (nextState: boolean) => {
-    get()
-      .userStream?.getVideoTracks()
-      .forEach((t) => (t.enabled = nextState))
-
-    set(() => ({ video: nextState }))
+    setStreamVideo(get().user.stream, nextState)
+    set((state) => ({ user: { ...state.user, video: nextState } }))
   },
   setUserAudio: (nextState: boolean) => {
-    get()
-      .userStream?.getAudioTracks()
-      .forEach((t) => (t.enabled = nextState))
-
-    set(() => ({ audio: nextState }))
+    setStreamAudio(get().user.stream, nextState)
+    set((state) => ({ user: { ...state.user, audio: nextState } }))
   },
 })

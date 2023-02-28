@@ -38,10 +38,13 @@ export type SocketPeerStore = {
   myPeerId: string
   remoteStreams: Array<RemoteStream>
   peerMap: Map<string, MediaConnection>
+  isScreenShare: boolean
   enterMeeupRoom: (myRoomId: string, myUserId: string) => void
   leaveMeeupRoom: () => void
   setRemoteVideo: (remotePeerId: string, nextState: boolean) => void
   setRemoteAudio: (remotePeerId: string, nextState: boolean) => void
+  screenShare: () => void
+  stopScreenShare: () => void
 }
 
 export const createSocketPeerStore: CreateStore<SocketPeerStore> = (
@@ -53,6 +56,7 @@ export const createSocketPeerStore: CreateStore<SocketPeerStore> = (
   myPeerId: '',
   remoteStreams: [],
   peerMap: new Map(),
+  isScreenShare: false,
   enterMeeupRoom: async (myRoomId: string, myUserId: string) => {
     console.log('enterMeeupRoom')
     const res = await Promise.all([createSocketIo(), createPeer()])
@@ -78,14 +82,14 @@ export const createSocketPeerStore: CreateStore<SocketPeerStore> = (
     peer.on('call', (call: MediaConnection) => {
       console.log('[通知] 收到其他用戶來電', { call })
 
-      const { userStream } = get()
-      if (!userStream) {
+      const { user } = get()
+      if (!user.stream) {
         console.error('[ERROR] userStream is invalid')
         return
       }
 
       // 被動回應此來電
-      call.answer(userStream)
+      call.answer(user.stream)
 
       // 播放對方視訊
       const { onStream, onClose, onError } = peerHandlers(
@@ -113,8 +117,8 @@ export const createSocketPeerStore: CreateStore<SocketPeerStore> = (
     // 所有連線設置完成(Socketio 與 Peerjs 皆建立連線)後，加入房間
     socket.emit('join-room', myRoomId, myPeerId, {
       userId: myUserId,
-      audio: get().audio,
-      video: get().video,
+      audio: get().user.audio,
+      video: get().user.video,
     })
 
     set(() => ({ socket, peer }))
@@ -141,6 +145,13 @@ export const createSocketPeerStore: CreateStore<SocketPeerStore> = (
       return
     }
     remote.stream.getAudioTracks().forEach((t) => (t.enabled = nextState))
+  },
+  screenShare: async() => {
+    await get().createScreenStream();
+    set(()=>({isScreenShare:true}))
+  },
+  stopScreenShare: () => {
+    set(()=>({isScreenShare:false}))
   },
 })
 

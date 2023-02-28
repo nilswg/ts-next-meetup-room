@@ -8,8 +8,8 @@ export const socketHandlers = (get: StoreGet, set: StoreSet, peer: Peer, myUserI
     userConnected: (remotePeerId: string, remoteData: PeerMetadata) => {
       console.log(`[通知] 用戶 ${remotePeerId} 已加入房間`)
 
-      const { userStream } = get()
-      if (!userStream) {
+      const { user } = get()
+      if (!user.stream) {
         console.error('[ERROR] userStream is invalid')
         return
       }
@@ -17,13 +17,13 @@ export const socketHandlers = (get: StoreGet, set: StoreSet, peer: Peer, myUserI
       const userMetadata = {
         metadata: {
           userId: myUserId,
-          audio: get().audio,
-          video: get().video,
+          audio: user.audio,
+          video: user.video,
         },
       }
 
       // 主動聯繫別人，並接收對方的來電
-      const call = peer.call(remotePeerId, userStream, userMetadata)
+      const call = peer.call(remotePeerId, user.stream, userMetadata)
 
       // 播放對方視訊
       const { onStream, onClose, onError } = peerHandlers(

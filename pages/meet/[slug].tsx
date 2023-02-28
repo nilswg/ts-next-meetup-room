@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import VideoBox from '@/components/VideoBox'
 import { useStores } from '@/stores'
 import { CgSpinner } from 'react-icons/cg'
+import { MdOutlineScreenShare, MdOutlineStopScreenShare } from 'react-icons/md'
 import nookies from 'nookies'
 
 import {
@@ -26,9 +27,7 @@ const Meet = ({ cookies }: Props) => {
   const { slug: roomId } = router.query
   const doOnce = useRef(false)
   const {
-    loading,
-    error,
-    userStream,
+    user,
     createUserStream,
     removeUserStream,
     enterMeeupRoom,
@@ -36,10 +35,12 @@ const Meet = ({ cookies }: Props) => {
     remoteStreams,
     myPeerId,
     socket,
-    audio,
     setUserAudio,
-    video,
     setUserVideo,
+    isScreenShare,
+    screenShare,
+    stopScreenShare,
+    createScreenStream
   } = useStores((state) => state)
 
   useEffect(() => {
@@ -60,11 +61,11 @@ const Meet = ({ cookies }: Props) => {
   }
 
   const handleUserVedio = () => {
-    setUserVideo(!video)
+    setUserVideo(!user.video)
   }
 
   const handleUserAudio = () => {
-    setUserAudio(!audio)
+    setUserAudio(!user.audio)
   }
 
   const letsMeet = async () => {
@@ -72,7 +73,7 @@ const Meet = ({ cookies }: Props) => {
       alert('roomid is empty or invalid')
       return
     }
-    if (!userStream) {
+    if (!user.stream) {
       removeUserStream()
       await createUserStream()
       enterMeeupRoom(roomId, userId ?? '')
@@ -84,13 +85,16 @@ const Meet = ({ cookies }: Props) => {
   return (
     <div className="">
       <h1 className="pt-[5rem] text-white">Meet | {roomId}</h1>
+      <div>
+        <video className="h-[480px] w-[640px] bg-slate-400 " src=""></video>
+      </div>
       <div className="grid auto-rows-[300px] grid-cols-[repeat(auto-fill,_300px)]">
-        {error && <Error err={error} />}
-        {loading ? (
+        {user.error && <Error err={user.error} />}
+        {user.loading ? (
           <Loading />
         ) : (
           <VideoBox
-            stream={userStream!}
+            stream={user.stream!}
             peerId={myPeerId}
             username={userId ?? ''}
           />
@@ -109,7 +113,7 @@ const Meet = ({ cookies }: Props) => {
           onClick={handleUserVedio}
           className="inline-block  disabled:border-gray-600 disabled:text-gray-600"
         >
-          {video ? (
+          {user.video ? (
             <div className="flex items-center justify-center rounded-full bg-sky-600 p-2 text-2xl text-white">
               <FaVideo />
             </div>
@@ -123,7 +127,7 @@ const Meet = ({ cookies }: Props) => {
           onClick={handleUserAudio}
           className="inline-block  disabled:border-gray-600 disabled:text-gray-600"
         >
-          {audio ? (
+          {user.audio ? (
             <div className="flex items-center justify-center rounded-full bg-sky-600 p-2 text-2xl text-white">
               <FaMicrophone />
             </div>
@@ -133,6 +137,24 @@ const Meet = ({ cookies }: Props) => {
             </div>
           )}
         </button>
+
+        {isScreenShare ? (
+          <button
+            onClick={stopScreenShare}
+            className="inline-flex items-center justify-center rounded-3xl bg-red-600  px-4 py-2 text-2xl text-white disabled:border-gray-600 disabled:text-gray-300"
+          >
+            <MdOutlineStopScreenShare />
+          </button>
+        ) : (
+          <button
+            onClick={screenShare}
+            className="inline-flex items-center justify-center rounded-3xl bg-teal-600 px-4  py-2 text-2xl text-white disabled:bg-gray-600 disabled:text-gray-300"
+            disabled={!!socket}
+          >
+            <MdOutlineScreenShare />
+          </button>
+        )}
+
         {!!socket ? (
           <button
             onClick={leaveMeet}
