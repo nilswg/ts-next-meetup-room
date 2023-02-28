@@ -1,10 +1,27 @@
 import { useRouter } from 'next/router'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import VideoBox from '@/components/VideoBox'
 import { useStores } from '@/stores'
 import { CgSpinner } from 'react-icons/cg'
+import nookies from 'nookies'
 
-const Meet = () => {
+import {
+  FaVideo,
+  FaVideoSlash,
+  FaMicrophoneSlash,
+  FaMicrophone,
+} from 'react-icons/fa'
+
+import { ImPhone, ImPhoneHangUp } from 'react-icons/im'
+
+import { NextPageContext } from 'next'
+
+type Props = {
+  cookies: { [key: string]: string }
+}
+
+const Meet = ({ cookies }: Props) => {
+  const [userId, setUserId] = useState(cookies['USER_ID'])
   const router = useRouter()
   const { slug: roomId } = router.query
   const doOnce = useRef(false)
@@ -15,8 +32,8 @@ const Meet = () => {
     createUserStream,
     removeUserStream,
     enterMeeupRoom,
+    leaveMeeupRoom,
     remoteStreams,
-    userId,
     myPeerId,
     socket,
     audio,
@@ -33,18 +50,13 @@ const Meet = () => {
     }
     return () => {
       removeUserStream()
+      leaveMeeupRoom()
     }
   }, [])
 
-  const reconnect = () => {
-    if (!!userStream) {
-      removeUserStream()
-    }
-    createUserStream()
-  }
-
-  const remove = () => {
-    removeUserStream()
+  // 離開房間不會中斷關閉攝影機
+  const leaveMeet = () => {
+    leaveMeeupRoom()
   }
 
   const handleUserVedio = () => {
@@ -55,61 +67,89 @@ const Meet = () => {
     setUserAudio(!audio)
   }
 
-  const letsMeet = () => {
+  const letsMeet = async () => {
     if (!roomId || Array.isArray(roomId)) {
       alert('roomid is empty or invalid')
       return
     }
-    enterMeeupRoom(roomId)
+    if (!userStream) {
+      removeUserStream()
+      await createUserStream()
+      enterMeeupRoom(roomId, userId ?? '')
+    } else {
+      enterMeeupRoom(roomId, userId ?? '')
+    }
   }
 
   return (
     <div className="">
       <h1 className="pt-[5rem] text-white">Meet | {roomId}</h1>
       <div className="grid auto-rows-[300px] grid-cols-[repeat(auto-fill,_300px)]">
-        {error && <Error />}
+        {error && <Error err={error} />}
         {loading ? (
           <Loading />
         ) : (
-          <VideoBox stream={userStream!} peerId={myPeerId} username={userId}/>
+          <VideoBox
+            stream={userStream!}
+            peerId={myPeerId}
+            username={userId ?? ''}
+          />
         )}
         {remoteStreams.map((s) => (
-          <VideoBox key={s.id} stream={s.stream} peerId={s.id} username={s.userId}></VideoBox>
+          <VideoBox
+            key={s.id}
+            stream={s.stream}
+            peerId={s.id}
+            username={s.userId}
+          ></VideoBox>
         ))}
       </div>
-
-      <button
-        onClick={reconnect}
-        className="w-[150px] border-[1px] border-white py-2 px-6 text-white disabled:border-gray-600 disabled:text-gray-600"
-        disabled={loading}
-      >
-        Reconnect
-      </button>
-      <button
-        onClick={remove}
-        className="w-[150px] border-[1px] border-white py-2 px-6 text-white disabled:border-gray-600 disabled:text-gray-600"
-      >
-        Remove
-      </button>
-      <button
-        onClick={handleUserVedio}
-        className="w-[150px] border-[1px] border-white py-2 px-6 text-white disabled:border-gray-600 disabled:text-gray-600"
-      >
-        {video ? 'Video OFF' : 'Video ON'}
-      </button>
-      <button
-        onClick={handleUserAudio}
-        className="w-[150px] border-[1px] border-white py-2 px-6 text-white disabled:border-gray-600 disabled:text-gray-600"
-      >
-        {audio ? 'Audio OFF' : 'Audio ON'}
-      </button>
-      <button
-        onClick={letsMeet}
-        className="w-[150px] border-[1px] border-white py-2 px-6 text-white disabled:border-gray-600 disabled:text-gray-600"
-        disabled={!!socket}
-      >
-        Let's Meet
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={handleUserVedio}
+          className="inline-block  disabled:border-gray-600 disabled:text-gray-600"
+        >
+          {video ? (
+            <div className="flex items-center justify-center rounded-full bg-sky-600 p-2 text-2xl text-white">
+              <FaVideo />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center rounded-full bg-red-600 p-2 text-2xl text-white">
+              <FaVideoSlash />
+            </div>
+          )}
+        </button>
+        <button
+          onClick={handleUserAudio}
+          className="inline-block  disabled:border-gray-600 disabled:text-gray-600"
+        >
+          {audio ? (
+            <div className="flex items-center justify-center rounded-full bg-sky-600 p-2 text-2xl text-white">
+              <FaMicrophone />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center rounded-full bg-red-600 p-2 text-2xl text-white">
+              <FaMicrophoneSlash />
+            </div>
+          )}
+        </button>
+        {!!socket ? (
+          <button
+            onClick={leaveMeet}
+            className="inline-flex items-center justify-center rounded-3xl bg-red-600  px-4 py-2 text-2xl text-white disabled:border-gray-600 disabled:text-gray-300"
+          >
+            <ImPhoneHangUp />
+          </button>
+        ) : (
+          <button
+            onClick={letsMeet}
+            className="inline-flex items-center justify-center rounded-3xl bg-teal-600 px-4  py-2 text-2xl text-white disabled:bg-gray-600 disabled:text-gray-300"
+            disabled={!!socket}
+          >
+            <ImPhone />
+          </button>
+        )}
+      </div>
     </div>
   )
 }
@@ -125,12 +165,19 @@ function Loading() {
   )
 }
 
-function Error() {
+function Error({ err }: { err: string }) {
   return (
     <div className="flex h-full w-full items-center">
-      <h1 className="w-full text-center text-4xl uppercase text-white">
-        No Camera
-      </h1>
+      <h1 className="w-full text-center text-4xl text-white">{err}</h1>
     </div>
   )
+}
+
+export const getServerSideProps = (ctx: NextPageContext) => {
+  return {
+    props: {
+      cookies: nookies.get(ctx),
+      uuid: require('crypto').randomUUID(),
+    },
+  }
 }

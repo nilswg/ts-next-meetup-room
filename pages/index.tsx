@@ -1,24 +1,30 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { NextPageContext } from 'next'
 import Link from 'next/link'
-import { useStores } from '@/stores'
+import nookies, { setCookie } from 'nookies'
 // import Image from 'next/image';
 // import { Inter } from 'next/font/google';
 // const inter = Inter({ subsets: ['latin'] });
 
-type Props = {
+interface Props  {
   uuid: string
+  cookies: {[key:string]:string}
 }
 
-export default function Home({ uuid }: Props) {
+export default function Home({ uuid, cookies }: Props) {
   const [roomId, setRoomId] = useState(uuid)
-  const { userId, setUserId } = useStores((s) => s)
+  const [userId, setUserId] = useState(cookies['USER_ID'])
 
   const onRoomIdChanged = (e: any) => {
     setRoomId(e.target.value)
   }
 
   const onUserIdChanged = (e: any) => {
+    setCookie(null, 'USER_ID', e.target.value, {
+      maxAge: 30 * 24 * 60 * 60,
+      path: '/',
+    })
+
     setUserId(e.target.value)
   }
 
@@ -59,6 +65,7 @@ export default function Home({ uuid }: Props) {
 export const getServerSideProps = (ctx: NextPageContext) => {
   return {
     props: {
+      cookies: nookies.get(ctx),
       uuid: require('crypto').randomUUID(),
     },
   }

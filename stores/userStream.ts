@@ -1,13 +1,13 @@
 import type { CreateStore } from '@/stores'
 
 export type StreamStore = {
-  userId: string
+  // userId: string
   userStream: MediaStream | null
   video: boolean
   audio: boolean
   loading: boolean
-  error: null | string
-  setUserId: (userId: string) => void
+  error: string
+  // setUserId: (userId: string) => void
   createUserStream: () => void
   removeUserStream: () => void
   setUserVideo: (video: boolean) => void
@@ -15,24 +15,33 @@ export type StreamStore = {
 }
 
 export const createStreamStore: CreateStore<StreamStore> = (set, get) => ({
-  userId: '',
+  // userId: '',
   userStream: null,
   video: true,
   audio: true,
   loading: false,
-  error: null,
-  setUserId: (userId: string) => {
-    set(() => ({ userId }))
-  },
+  error: '',
+  // setUserId: (userId: string) => {
+  //   set(() => ({ userId }))
+  // },
   createUserStream: async () => {
     set((state) => ({ loading: true }))
 
     try {
+
+      // 這邊一定要全部開啟，意思為取得音源與視訊源。
       const stream: MediaStream = await navigator.mediaDevices.getUserMedia({
-        video: get().video,
-        audio: get().audio,
+        video: true,
+        audio: true,
       })
+      console.log('createUserStream');
       set((state) => ({ userStream: stream }))
+
+      // 這邊根據當前設置，選擇是否呈現畫面、是否靜音
+      const {setUserAudio, setUserVideo, video, audio} = get()
+      setUserAudio(audio)
+      setUserVideo(video)
+
     } catch (error) {
       set((state) => ({ error: 'GetUserMedia Failed' }))
     } finally {
@@ -43,7 +52,7 @@ export const createStreamStore: CreateStore<StreamStore> = (set, get) => ({
     get()
       .userStream?.getTracks()
       .forEach((track) => track.stop())
-    set((state) => ({ userStream: null }))
+    set((state) => ({ userStream: null, error:'' }))
   },
   setUserVideo: (nextState: boolean) => {
     get()

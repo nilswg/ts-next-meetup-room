@@ -38,10 +38,10 @@ export type SocketPeerStore = {
   myPeerId: string
   remoteStreams: Array<RemoteStream>
   peerMap: Map<string, MediaConnection>
-  enterMeeupRoom: (myRoomId: string) => void
+  enterMeeupRoom: (myRoomId: string, myUserId: string) => void
   leaveMeeupRoom: () => void
-  setRemoteVideo: (peerId: string, nextState: boolean) => void
-  setRemoteAudio: (peerId: string, nextState: boolean) => void
+  setRemoteVideo: (remotePeerId: string, nextState: boolean) => void
+  setRemoteAudio: (remotePeerId: string, nextState: boolean) => void
 }
 
 export const createSocketPeerStore: CreateStore<SocketPeerStore> = (
@@ -53,7 +53,8 @@ export const createSocketPeerStore: CreateStore<SocketPeerStore> = (
   myPeerId: '',
   remoteStreams: [],
   peerMap: new Map(),
-  enterMeeupRoom: async (myRoomId: string) => {
+  enterMeeupRoom: async (myRoomId: string, myUserId: string) => {
+    console.log('enterMeeupRoom')
     const res = await Promise.all([createSocketIo(), createPeer()])
 
     const { socket } = res[0] as {
@@ -61,10 +62,9 @@ export const createSocketPeerStore: CreateStore<SocketPeerStore> = (
     }
     console.log('socket.io 連線成功')
 
-    const { peer, peerId: myPeerId } = res[1]
+    const { peer, myPeerId } = res[1]
     console.log('peer 連線成功')
 
-    // keep peerId
     set(() => ({ myPeerId }))
     console.log('MyPeerId:', myPeerId)
 
@@ -97,7 +97,12 @@ export const createSocketPeerStore: CreateStore<SocketPeerStore> = (
       call.on('stream', onStream).on('close', onClose).on('error', onError)
     })
 
-    const { userConnected, userDisconnected } = socketHandlers(get, set, peer)
+    const { userConnected, userDisconnected } = socketHandlers(
+      get,
+      set,
+      peer,
+      myUserId
+    )
 
     // 當有人加入房間時
     socket.on('user-connected', userConnected)
@@ -107,7 +112,7 @@ export const createSocketPeerStore: CreateStore<SocketPeerStore> = (
 
     // 所有連線設置完成(Socketio 與 Peerjs 皆建立連線)後，加入房間
     socket.emit('join-room', myRoomId, myPeerId, {
-      userId: get().userId,
+      userId: myUserId,
       audio: get().audio,
       video: get().video,
     })
@@ -117,9 +122,26 @@ export const createSocketPeerStore: CreateStore<SocketPeerStore> = (
   leaveMeeupRoom: () => {
     get().socket?.close()
     set(() => ({ socket: null, peer: null }))
+
+    // 退出房間時清除所有連線
+    set(() => ({ myPeerId: '', peerMap: new Map(), remoteStreams: [] }))
   },
-  setRemoteVideo: (remotePeerId: string, nextState: boolean) => {},
-  setRemoteAudio: (remotePeerId: string, nextState: boolean) => {},
+  setRemoteVideo: (remotePeerId: string, nextState: boolean) => {
+    const remote = get().remoteStreams.filter((s) => s.id === remotePeerId)[0]
+    if (!remote) {
+      alert('remoteStream notfound')
+      return
+    }
+    remote.stream.getVideoTracks().forEach((t) => (t.enabled = nextState))
+  },
+  setRemoteAudio: (remotePeerId: string, nextState: boolean) => {
+    const remote = get().remoteStreams.filter((s) => s.id === remotePeerId)[0]
+    if (!remote) {
+      alert('remoteStream notfound')
+      return
+    }
+    remote.stream.getAudioTracks().forEach((t) => (t.enabled = nextState))
+  },
 })
 
 /**
@@ -135,7 +157,7 @@ function createSocketIo(): Promise<{ socket: Socket }> {
 /**
  * 直接使用 npx peerjs --port=4001 創建伺服器
  */
-async function createPeer(): Promise<{ peer: Peer; peerId: string }> {
+async function createPeer(): Promise<{ peer: Peer; myPeerId: string }> {
   const Peer = (await import('peerjs')).default
   const peer = new Peer('', {
     host: 'localhost',
@@ -143,6 +165,6 @@ async function createPeer(): Promise<{ peer: Peer; peerId: string }> {
     path: '/peerjs',
   })
   return new Promise((resolve) => {
-    peer.on('open', (peerId) => resolve({ peer, peerId }))
+    peer.on('open', (myPeerId) => resolve({ peer, myPeerId }))
   })
 }

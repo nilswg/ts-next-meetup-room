@@ -3,7 +3,7 @@ import { StoreGet, StoreSet } from '@/stores'
 import { PeerMetadata } from '@/stores/socketPeer'
 import { peerHandlers } from './peerHandlers'
 
-export const socketHandlers = (get: StoreGet, set: StoreSet, peer: Peer) => {
+export const socketHandlers = (get: StoreGet, set: StoreSet, peer: Peer, myUserId:string) => {
   return {
     userConnected: (remotePeerId: string, remoteData: PeerMetadata) => {
       console.log(`[通知] 用戶 ${remotePeerId} 已加入房間`)
@@ -16,7 +16,7 @@ export const socketHandlers = (get: StoreGet, set: StoreSet, peer: Peer) => {
 
       const userMetadata = {
         metadata: {
-          userId: get().userId,
+          userId: myUserId,
           audio: get().audio,
           video: get().video,
         },
