@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import BlackScreen from './BlackScreen'
 import Navbar from './Navbar'
 
 const Layout = ({ children }: any) => {
@@ -11,7 +12,8 @@ const Layout = ({ children }: any) => {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="h-screen bg-gray-900">{children}</main>
+      <main className="bg-white dark:bg-neutral-700 h-screen">{children}</main>
+      <BlackScreen />
     </>
   )
 }
