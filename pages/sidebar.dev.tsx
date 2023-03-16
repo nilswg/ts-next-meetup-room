@@ -1,4 +1,4 @@
-import SideBar from '@/components/SideBar'
+import SideBar, { Button } from '@/components/SideBar'
 import UserWebcamAudioButton from '@/components/UserWebcamAudioButton'
 import UserEnterRoomButton from '@/components/UserEnterRoomButton'
 import UserScreenShareButton from '@/components/UserScreenShareButton'
@@ -18,6 +18,7 @@ const SidebarPage = ({ cookies }: Props) => {
   const [userId, setUserId] = useState(cookies['USER_ID'])
   return (
     <>
+      <Button/>
       <SideBar roomId={roomId as string} userId={userId} />
       <UserWebcamVideoButton />
       <UserWebcamAudioButton />

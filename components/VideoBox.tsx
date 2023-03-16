@@ -1,14 +1,18 @@
 import useClient from '@/hooks/useClient'
+import Image from 'next/image'
 import { CSSProperties, ReactNode, useCallback, useRef, useState } from 'react'
 import { TbPlugConnectedX, TbFlipVertical } from 'react-icons/tb'
+
+import test from '/public/test.jpg'
 
 type Props = {
   peerId: string
   stream: MediaStream
   username: string
+  fill:boolean
 }
 
-const VideoBox = ({ peerId, stream, username = '' }: Props) => {
+const VideoBox = ({ peerId, stream, username = '', fill }: Props) => {
   const ref = useRef<HTMLVideoElement | null>(null)
   const [flip, setFlip] = useState(true)
 
@@ -41,25 +45,22 @@ const VideoBox = ({ peerId, stream, username = '' }: Props) => {
     setFlip((s) => !s)
   }
 
+  const fillStyles = fill ? /*tw:*/ 'min-w-full min-h-full' : ''
+
   return (
-    <div className="relative">
-      <div className="absolute top-0 left-0 z-10">
-        <h1 className="text-4xl text-sky-400">{username}</h1>
-        <h1 className="text-2xl text-teal-400">{peerId.slice(0, 6)}</h1>
+    <>
+      {/* <Image src={test} alt="" fill className="object-contain" /> */}
+      <video ref={ref} className={`${fillStyles} object-contain ${flipCamera}`} src=""></video>
+      <div className="absolute top-2 right-4">
+        <div className="text-4xl text-sky-400">{username}</div>
+        <div className="text-2xl text-teal-400">{peerId.slice(0, 6)}</div>
         <Button style={{ backgroundColor: '' }} onClick={handleFlip}>
           <TbFlipVertical className="h-5 w-5" />
           <span className="sr-only">Flip Camera</span>
         </Button>
       </div>
+    </>
 
-      {stream ? (
-        <video ref={ref} className={`h-full w-full bg-black object-cover ${flipCamera}`} src=""></video>
-      ) : (
-        <div className="flex h-full w-full items-center justify-center bg-black">
-          <TbPlugConnectedX className="h-20 w-20 text-gray-700" />
-        </div>
-      )}
-    </div>
   )
 }
 
@@ -80,7 +81,7 @@ function Button({ children, style = {}, disabled = false, onClick }: ButtonProps
       type="button"
       data-te-ripple-init
       data-te-ripple-color="light"
-      className={`inline-flex justify-center rounded-full p-2 text-xs font-medium uppercase leading-normal text-neutral-700 hover:bg-neutral-700 hover:text-white  dark:border-neutral-500 dark:text-neutral-500 dark:hover:text-white shadow-md border-[1px] border-neutral-700 transition duration-150 ease-in-out hover:shadow-lg focus:shadow-lg focus:outline-none focus:ring-0 active:shadow-lg`}
+      className={`inline-flex justify-center rounded-full border-[1px] border-neutral-700 p-2 text-xs font-medium uppercase leading-normal text-neutral-700  shadow-md transition duration-150 ease-in-out hover:bg-neutral-700 hover:text-white hover:shadow-lg focus:shadow-lg focus:outline-none focus:ring-0 active:shadow-lg dark:border-neutral-500 dark:text-neutral-500 dark:hover:text-white`}
       style={btnStyles}
       disabled={disabled}
       onClick={onClick}

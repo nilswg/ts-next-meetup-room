@@ -14,7 +14,6 @@ const UserWebcamSelector = () => {
 
   return (
     <div>
-      {/* {!error && <Error err={'sdfsdfd'} />} */}
       <DevicesSelector
         id={'webcam'}
         text={'視訊鏡頭'}

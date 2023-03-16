@@ -75,10 +75,26 @@ const DevicesSelector = ({
       <ul className={`${open ? '' : 'hidden'} space-y-2 py-2`}>
         {!!error && <Error err={error} />}
         {!loading &&
-          devices.map((device, i) => (
-            <li key={device.id + i}>
-              <Item device={device} setSelect={setSelectCallback} />
+          (!devices.length ? (
+            <li>
+              <Item
+                device={{
+                  id: '',
+                  groupId: '',
+                  kind: 'audioinput',
+                  label: '沒有設備',
+                }}
+                setSelect={() => {}}
+              />
             </li>
+          ) : (
+            <>
+              {devices.map((device, i) => (
+                <li key={device.id + i}>
+                  <Item device={device} setSelect={setSelectCallback} />
+                </li>
+              ))}
+            </>
           ))}
       </ul>
     </>
@@ -97,7 +113,8 @@ function Item({ device, setSelect }: ItemProps) {
       className={`group flex w-full items-center rounded-lg p-2 pl-11 text-base font-normal text-gray-900 transition duration-75 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700`}
       onClick={onClick}
     >
-      {`${device.id.slice(0, 10)} | ${device.label}`}
+      {/* {`${device.id.slice(0, 10)} | ${device.label}`} */}
+      {device.label}
     </p>
   )
 }

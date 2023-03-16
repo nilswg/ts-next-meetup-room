@@ -18,19 +18,11 @@ app.get('/', (req, res) => {
 app.use('/peerjs', PeerServer)
 
 PeerServer.on('connection', (client) => {
-  console.log(`使用者連線
-  {
-    Id: ${client.getId()},
-    Token: ${client.getToken()}
-  }`)
+  console.log(`使用者連線: Id: ${client.getId().slice(0, 10)}`)
 })
 
 PeerServer.on('disconnect', (client) => {
-  console.log(`使用者離線
-  {
-    Id: ${client.getId()},
-    Token: ${client.getToken()}
-  }`)
+  console.log(`使用者離線: Id: ${client.getId().slice(0, 10)}`)
 })
 
 httpServer.listen(PORT, () => console.log(`listening on ${PORT}`))

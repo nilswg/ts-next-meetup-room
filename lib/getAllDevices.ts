@@ -28,7 +28,7 @@ async function getAllDevices(debug = false): Promise<{
       kind: dev.kind,
       // isDefault: dev.label.includes('預設'),
     }
-    if (dev.deviceId === 'default') continue
+    if (!dev.deviceId || dev.deviceId === 'default') continue
     if (dev.kind === 'videoinput') {
       webcams.push(temp)
     } else if (dev.kind === 'audioinput') {
@@ -37,6 +37,8 @@ async function getAllDevices(debug = false): Promise<{
       audios.push(temp)
     }
   }
+
+  console.log({ webcams })
 
   return { webcams, microphones, audios }
 }

@@ -1,4 +1,15 @@
-declare module "tw-elements"
+declare module 'tw-elements'
+
+type PeerMetadata = {
+  userId: string // 加入房間的用戶ID
+  userPeerId: string // 加入房間的用戶 PeerID
+  peerId: string // 設備的PeerID
+  streamType: 'webcam' | 'screen' | 'none' // 鏡頭,螢幕,沒有
+  video: boolean
+  audio: boolean //
+  single?: boolean // 使否為單向傳輸
+  frameRate?: number
+}
 
 type DeviceIDs = {
   id: string
@@ -12,7 +23,19 @@ type DeviceProps = {
   label: string
 }
 
+type WebcamProps = {
+  type: 'user' | 'remote'
+  peerId: string
+  userId: string
+  stream: MediaStream | null
+  error: string
+  loading: boolean
+  video: boolean
+  audio: boolean
+}
+
 type ScreenProps = {
+  type: 'user' | 'remote'
   peerId: string
   userId: string
   stream: MediaStream | null
@@ -26,17 +49,17 @@ type ScreenProps = {
 type EnterRoomProps = {
   myRoomId: string
   myUserId: string
-  answerStream: MediaStream | null
-  video: boolean
-  audio: boolean
+  // answerStream: MediaStream | null
+  // video: boolean
+  // audio: boolean
 }
 
 type ResetWebcamProps = {
   myRoomId: string
   myUserId: string
-  newWebcamStream: MediaStream | null
-  video: boolean
-  audio: boolean
+  // newWebcamStream: MediaStream | null
+  // video: boolean
+  // audio: boolean
 }
 
 type ShareScreenProps = {
@@ -56,7 +79,7 @@ interface ServerToClientEvents {
   'user-connected': (remotePeerId: string, remoteData: PeerMetadata) => void
   'user-disconnected': (remotePeerId: string) => void
   'user-share-screen': (remoteScreenPeerId: string, remoteData: PeerMetadata) => void
-  'stop-user-share-screen': (remoteScreenPeerId: string, remoteData: PeerMetadata) => void
+  'user-stop-share-screen': (remoteScreenPeerId: string, remoteData: PeerMetadata) => void
   'user-reset-webcam': (remotePeerId: string, remoteData: PeerMetadata) => void
 }
 

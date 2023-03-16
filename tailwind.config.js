@@ -9,7 +9,11 @@ module.exports = {
   ],
   darkMode: 'media',
   theme: {
-    extend: {},
+    extend: {
+      screens: {
+        xs: '360px',
+      },
+    },
   },
   plugins: [require('tw-elements/dist/plugin'), require('flowbite/plugin')],
 }

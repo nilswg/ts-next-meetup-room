@@ -1,28 +1,33 @@
-import Peer from 'peerjs'
+import Peer, { MediaConnection } from 'peerjs'
 import { StoreGet, StoreSet } from '@/stores/socketPeer'
-import { PeerMetadata } from '@/stores/socketPeer'
 import { screenHandlers } from '@/stores/socketPeer/screenHandlers'
 import { webcamHandlers } from '@/stores/socketPeer/webcamHandlers'
+import createFakeStream from '@/lib/createFakeStream'
+import { createPeer } from '@/lib/createConnection'
 
 export const socketHandlers = (
   get: StoreGet,
   set: StoreSet,
-  peer: Peer,
-  myPeerId: string,
-  myUserId: string,
-  answerStream: MediaStream | null
+  roomId: string,
+  userId: string,
+  userPeerId: string,
+  webcamPeer: Peer,
+  webcamPeerId: string
 ) => {
   return {
     userConnected: (remotePeerId: string, remoteData: PeerMetadata) => {
       console.log(`[通知] 用戶 ${remotePeerId} 已加入房間`)
 
+      const answerStream = get().webcams[0].stream
+
       const myMetadata: { metadata: PeerMetadata } = {
         metadata: {
+          userId,
+          userPeerId,
+          peerId: webcamPeerId,
           streamType: 'webcam',
-          userId: myUserId,
-          peerId: myPeerId,
-          audio: remoteData.audio,
           video: remoteData.video,
+          audio: remoteData.audio,
         },
       }
 
@@ -32,121 +37,111 @@ export const socketHandlers = (
       }
 
       // 主動聯繫別人，並接收對方的來電
-      const call = peer.call(remotePeerId, answerStream, myMetadata)
+      const call = webcamPeer.call(remotePeerId, answerStream, myMetadata)
 
       // 播放對方視訊
       const { onStream, onClose, onError } = webcamHandlers(get, set, call, remoteData)
       call.on('stream', onStream).on('close', onClose).on('error', onError)
 
-      const { myScreenPeer, screen } = get()
-      const myScreenStream = screen.stream
-      console.log('目前我有螢幕分享...', { myScreenPeer, myScreenStream })
-      if (myScreenPeer && !!myScreenStream) {
-        const myScreenMetadata: { metadata: PeerMetadata } = {
-          metadata: {
-            userId: myUserId,
-            peerId: myPeerId,
-            audio: remoteData.audio,
-            video: remoteData.video,
-            streamType: 'screen',
-            single: true,
-          },
-        }
+      const { myScreenPeer, myScreenPeerId, screens } = get()
+      const screen = screens[0]
+      const socket = get().socket!
 
-        // 單向
-        const call = myScreenPeer.call(remotePeerId, myScreenStream, myScreenMetadata)
+      if (myScreenPeerId && myScreenPeer) {
+        console.log('目前正在分享螢幕, ScreenPeerId:', myScreenPeerId)
+
+        // 所有連線設置完成(Socketio 與 Peerjs 皆建立連線)後，發起
+        socket.emit('share-screen', roomId, userPeerId, {
+          userId: userId,
+          userPeerId: userPeerId,
+          peerId: myScreenPeerId,
+          streamType: 'screen',
+          video: screen.video,
+          audio: screen.audio,
+          single: true,
+        })
+
+        // 監聽別人對我的來電 (當我分享畫面時，別人向我請求分享畫面串流)
+        myScreenPeer.on('call', (call: MediaConnection) => {
+          const metadata: PeerMetadata = call.metadata
+          console.log('[通知] 其他用戶向我請求畫面', { metadata, call })
+
+          // 被動回應此來電
+          if (answerStream) {
+            call.answer(answerStream)
+          }
+
+          // 因為是單向的，不播放對方畫面
+          // if (metadata.streamType === 'screen' && !metadata.single) {
+          //   const { onStream, onClose, onError } = screenHandlers(get, set, call, call.metadata)
+          //   call.on('stream', onStream).on('close', onClose).on('error', onError)
+          // }
+        })
       }
     },
     userDisconnected: (remotePeerId: string) => {
       console.log(`[通知] 用戶 ${remotePeerId} 已退出房間`)
 
-      // 如果此用戶存在則關閉來電
-      const call = get().peerMap.get(remotePeerId)
-      if (!call) return
-      else {
-        call.close()
-      }
-      // 如果此用戶存在畫面的連線，關閉此連線。
-      const screen = get().peerScreenMap.get(remotePeerId)
-      if (!screen?.call) return
-      else {
-        console.log('關閉畫面', screen.screenPeerId)
-        screen.call.close()
-      }
+      // 如果此用戶存在視訊連線，則關閉視訊。
+      closeRemoteWebcam(get, set, remotePeerId)
+
+      // 如果此用戶存在畫面連線，則關閉畫面。
+      closeRemoteScreen(get, set, remotePeerId)
     },
-    userShareScreen: (remoteScreenPeerId: string, remoteData: PeerMetadata) => {
-      console.log(`[通知] 收到分享畫面 ${remoteScreenPeerId} `)
+    userShareScreen: async (remotePeerId: string, remoteData: PeerMetadata) => {
+      console.log(`[通知] 用戶 ${remotePeerId} 分享畫面`)
       console.log('remoteData', remoteData)
 
-      const myMetadata: { metadata: PeerMetadata } = {
-        metadata: {
-          userId: myUserId,
-          peerId: myPeerId,
-          audio: remoteData.audio,
-          video: remoteData.video,
-          streamType: 'none',
-        },
+      // 接受方可能沒有分享畫面。
+      if (!get().myScreenPeer) {
+        const { peer: myScreenPeer, peerId: myScreenPeerId } = await createPeer()
+        set(() => ({ myScreenPeer, myScreenPeerId }))
       }
 
       // 單向對方視訊播放
-      if (remoteData.streamType === 'screen') {
+      if (remoteData.streamType === 'screen' && remoteData.single === true) {
+        const myMetadata: { metadata: PeerMetadata } = {
+          metadata: {
+            userId,
+            userPeerId,
+            peerId: get().myScreenPeerId, // 相當於 '' 空字串
+            streamType: 'none',
+            video: remoteData.video,
+            audio: remoteData.audio,
+          },
+        }
+
         // 主動聯繫別人，並接收對方的來電(但我沒有畫面)
-        const fakeStream = createMediaStreamFake()
-        const call = peer.call(remoteScreenPeerId, fakeStream, myMetadata)
+        const fakeStream = createFakeStream()
+        const call = get().myScreenPeer!.call(remoteData.peerId, fakeStream, myMetadata)
 
         // 播放對方螢幕畫面
         const { onStream, onClose, onError } = screenHandlers(get, set, call, remoteData)
         call.on('stream', onStream).on('close', onClose).on('error', onError)
       }
     },
-    userStopShareScreen: (remoteScreenPeerId: string, remoteData: PeerMetadata) => {
-      console.log(`[通知] 分享畫面已停止 ${remoteScreenPeerId} `)
-      console.log('remoteData', remoteData)
+    userStopShareScreen: (remotePeerId: string, remoteData: PeerMetadata) => {
+      console.log(`[通知] 用戶 ${remotePeerId} 停止分享畫面`)
 
-      const remotePeerId = remoteData.peerId
-
-      get().peerScreenMap.delete(remotePeerId)
-
-      set(() => ({
-        remoteScreen: {
-          peerId: '',
-          userId: '',
-          stream: null,
-          loading: false,
-          error: '',
-          video: true,
-          audio: false,
-          frameRate: 30,
-        },
-      }))
-      // // 如果此用戶存在畫面的連線，關閉此連線。
-      // const screen = get().peerScreenMap.get(remotePeerId)
-      // if (!screen?.call) return
-      // else {
-      //   console.log('關閉畫面', screen.screenPeerId)
-      //   screen.call.close()
-      // }
+      // 如果此用戶存在畫面的連線，關閉此連線。
+      closeRemoteScreen(get, set, remotePeerId)
     },
-    userResetWebcam:(remotePeerId: string, remoteData: PeerMetadata)=>{
+    userResetWebcam: (remotePeerId: string, remoteData: PeerMetadata) => {
       console.log(`[通知] 用戶 ${remotePeerId} 重置視訊鏡頭`)
 
-      // 取得先前的 peerId。
-      const prePeerId = remoteData.peerId;
-      const peerMap =  get().peerMap;
-      const preCall = peerMap.get(prePeerId);
+      const answerStream = get().webcams[0].stream
 
-      if (preCall) {
-        peerMap.delete(prePeerId)
-        preCall.close()
-      }
+      // 如果此用戶存在視訊連線，則關閉視訊。
+      closeRemoteWebcam(get, set, remotePeerId)
 
       const myMetadata: { metadata: PeerMetadata } = {
         metadata: {
+          userId,
+          userPeerId,
+          peerId: webcamPeerId,
           streamType: 'webcam',
-          userId: myUserId,
-          peerId: myPeerId,
-          audio: remoteData.audio,
           video: remoteData.video,
+          audio: remoteData.audio,
         },
       }
 
@@ -156,41 +151,27 @@ export const socketHandlers = (
       }
 
       // 主動聯繫別人，並接收對方的來電
-      const call = peer.call(remotePeerId, answerStream, myMetadata)
+      console.log('重新聯繫該已重置視訊的用戶', remotePeerId)
+      const newWebcamPeerId = remoteData.peerId
+      const call = webcamPeer.call(newWebcamPeerId, answerStream, myMetadata)
 
       // 播放對方視訊
       const { onStream, onClose, onError } = webcamHandlers(get, set, call, remoteData)
       call.on('stream', onStream).on('close', onClose).on('error', onError)
-    }
+    },
   }
 }
 
-const createMediaStreamFake = () => {
-  return new MediaStream([createEmptyAudioTrack(), createEmptyVideoTrack({ width: 0, height: 0 })])
+function closeRemoteWebcam(get: StoreGet, set: StoreSet, remoteUserPeerId: string) {
+  console.log('[Socket] 關閉用戶視訊串流', remoteUserPeerId)
+  const webcam = get().peerWebcamMap.get(remoteUserPeerId)
+  if (!webcam) return
+  webcam.call.close()
 }
 
-const createEmptyAudioTrack = () => {
-  const ctx = new AudioContext()
-  const oscillator = ctx.createOscillator()
-  const dst = oscillator.connect(ctx.createMediaStreamDestination())
-  oscillator.start()
-  const track = (dst as AudioNode & { stream: any }).stream.getAudioTracks()[0]
-  return Object.assign(track, { enabled: false })
-}
-
-const createEmptyVideoTrack = ({ width, height }: any) => {
-  const canvas = Object.assign(document.createElement('canvas'), {
-    width,
-    height,
-  })
-  const my2d = canvas.getContext('2d')
-  if (!my2d) {
-    alert('not support canvas 2d')
-    return
-  }
-  my2d.fillRect(0, 0, width, height)
-  const stream = canvas.captureStream()
-  const track = stream.getVideoTracks()[0]
-
-  return Object.assign(track, { enabled: false })
+function closeRemoteScreen(get: StoreGet, set: StoreSet, remoteUserPeerId: string) {
+  console.log('[Socket] 關閉用戶畫面串流', remoteUserPeerId)
+  const screen = get().peerScreenMap.get(remoteUserPeerId)
+  if (!screen) return
+  screen.call.close()
 }

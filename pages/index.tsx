@@ -30,7 +30,7 @@ export default function Home({ uuid, cookies }: Props) {
   }
 
   return (
-    <div className="flex h-full items-center justify-center">
+    <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
       <div className="block max-w-lg rounded-lg bg-white p-8 shadow-lg dark:bg-neutral-700">
         <form className='w-[20rem]'>
           <FormField text={'用戶名稱'} id={'userid'} value={userId} onChange={onUserIdChanged} />

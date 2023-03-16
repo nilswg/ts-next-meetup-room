@@ -8,7 +8,6 @@ type Store = {
 }
 
 type Actions = {
-  // setMicrophones: (devices: DeviceProps[]) => void
   getMicrophones: () => Promise<void>
 }
 
@@ -16,20 +15,17 @@ export const useMicrophonesStore = create<Store & Actions>((set, get) => ({
   microphones: [],
   loading: false,
   error: '',
-  // setMicrophones: (devices: DeviceProps[]) => {
-  //   set(() => ({ microphones: devices }))
-  // },
   getMicrophones: async () => {
-    set((state) => ({ loading: true }))
+    set(() => ({ loading: true }))
     return getAllDevices()
       .then(({ microphones }) => {
-        set((state) => ({ microphones, loading: false }))
+        set(() => ({ microphones, loading: false }))
       })
       .catch((error) => {
-        set((state) => ({ error: 'Get devices failed.' }))
+        set(() => ({ error: error?.message ?? 'Get devices failed.' }))
       })
       .finally(() => {
-        set((state) => ({ loading: false }))
+        set(() => ({ loading: false }))
       })
   },
 }))

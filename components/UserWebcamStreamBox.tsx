@@ -1,24 +1,17 @@
-import useClient from '@/hooks/useClient'
-import { useDevicesStore } from '@/stores/devices'
 import { useSockerPeerStore } from '@/stores/socketPeer'
-import { useWebcamStreamStore } from '@/stores/webcamStream'
+import { useState } from 'react'
 import { CgSpinner } from 'react-icons/cg'
 import { TbPlugConnectedX } from 'react-icons/tb'
 import VideoBox from './VideoBox'
 
 type Props = {
   username: string
+  fill?: boolean
 }
 
-const UserWebcamStreamBox = ({ username }: Props) => {
-  const { webcamIds, microphoneIds, getWebcamStream } = useDevicesStore()
-  const { error, loading, stream, handleWebcamStream } = useWebcamStreamStore()
-  const { myPeerId } = useSockerPeerStore()
-
-  useClient(() => {
-    handleWebcamStream(getWebcamStream())
-    return () => {}
-  }, [webcamIds, microphoneIds])
+const UserWebcamStreamBox = ({ username, fill = false }: Props) => {
+  const { myWebcamPeerId, webcams } = useSockerPeerStore()
+  const { error, loading, stream } = webcams[0]
 
   return (
     <>
@@ -28,7 +21,7 @@ const UserWebcamStreamBox = ({ username }: Props) => {
       ) : !stream ? (
         <NoStream />
       ) : (
-        <VideoBox stream={stream!} peerId={myPeerId} username={username} />
+        <VideoBox stream={stream} peerId={myWebcamPeerId} username={username} fill={fill} />
       )}
     </>
   )
@@ -36,7 +29,7 @@ const UserWebcamStreamBox = ({ username }: Props) => {
 
 function NoStream() {
   return (
-    <div className="flex h-full w-full items-center justify-center bg-black">
+    <div className="flex h-full w-full items-center justify-center bg-neutral-900">
       <TbPlugConnectedX className="h-20 w-20 text-gray-700" />
     </div>
   )
@@ -44,15 +37,21 @@ function NoStream() {
 
 function Loading() {
   return (
-    <div className="flex items-center justify-center bg-gray-900">
-      <CgSpinner className={`h-10 w-10 animate-[spin_1s_linear_infinite] text-sky-400`} />
+    <div className="flex h-full w-full items-center justify-center bg-neutral-900">
+      <CgSpinner className={`h-20 w-20 animate-[spin_1s_linear_infinite] text-sky-400`} />
     </div>
   )
 }
 
 function Error({ err }: { err: string }) {
+  const [close, setClose] = useState(false)
+
+  const onClose = () => {
+    setClose(!close)
+  }
+
   return (
-    <div className="absolute">
+    <div className={`absolute z-10 ${close ? 'hidden' : ''}`}>
       <div
         id="toast-danger"
         className="mb-4 flex w-full max-w-xs items-center rounded-lg bg-white p-4 text-gray-500 shadow dark:bg-gray-800 dark:text-gray-400"
@@ -80,6 +79,7 @@ function Error({ err }: { err: string }) {
           className="-mx-1.5 -my-1.5 ml-auto inline-flex h-8 w-8 rounded-lg bg-white p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 focus:ring-2 focus:ring-gray-300 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-white"
           data-dismiss-target="#toast-danger"
           aria-label="Close"
+          onClick={onClose}
         >
           <span className="sr-only">Close</span>
           <svg

@@ -8,7 +8,6 @@ type Store = {
 }
 
 type Actions = {
-  // setWebcams: (devices: DeviceProps[]) => void
   getWebcams: () => Promise<void>
 }
 
@@ -16,22 +15,19 @@ export const useWebcamsStore = create<Store & Actions>((set, get) => ({
   webcams: [],
   loading: false,
   error: '',
-  // setWebcams: (devices: DeviceProps[]) => {
-  //   set(() => ({ webcams: devices }))
-  // },
   getWebcams: async () => {
-    set((state) => ({ loading: true }))
+    set(() => ({ loading: true }))
     return new Promise((resolve, reject) => {
       getAllDevices()
         .then(({ webcams }) => {
-          set((state) => ({ webcams, loading: false }))
+          set(() => ({ webcams, loading: false }))
         })
         .catch((error) => {
-          set((state) => ({ error: 'get devices failed.' }))
+          set(() => ({ error: error?.message ?? 'get devices failed.' }))
           reject('get devices failed.')
         })
         .finally(() => {
-          set((state) => ({ loading: false }))
+          set(() => ({ loading: false }))
           resolve()
         })
     })

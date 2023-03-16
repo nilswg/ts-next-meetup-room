@@ -1,14 +1,16 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { CgSpinner } from 'react-icons/cg'
 import { TbPlugConnectedX } from 'react-icons/tb'
 
 type Props = {
   peerId: string
-  stream: MediaStream
+  stream: MediaStream | null
   username: string
 }
 
-const ScreenBox = ({ peerId, stream, username = '' }: Props) => {
+const ScreenBox = ({ peerId, stream = null, username = '' }: Props) => {
   const ref = useRef<HTMLVideoElement | null>(null)
+  const [loading, setLoading] = useState(false)
 
   const playVideo = useCallback(() => {
     console.log('playVideo')
@@ -32,22 +34,36 @@ const ScreenBox = ({ peerId, stream, username = '' }: Props) => {
   }, [])
 
   return (
-    <div className="relative h-[480px] w-[1080px] bg-slate-400">
-      <div className="absolute top-0 left-4">
-        <h1 className="text-3xl text-gray-400">{peerId.slice(0, 6)}</h1>
-        <h1 className="text-5xl text-sky-400">{username}</h1>
-      </div>
-      {stream ? (
-        <video
-          ref={ref}
-          className="h-full w-full bg-black object-cover"
-          src=""
-        ></video>
+    <>
+      {loading ? (
+        <Loading />
+      ) : !stream ? (
+        <NoStream />
       ) : (
-        <div className="flex h-full w-full items-center justify-center bg-black">
-          <TbPlugConnectedX className="h-20 w-20 text-gray-700" />
-        </div>
+        <>
+          <video ref={ref} className="h-full w-full bg-black object-contain" src=""></video>
+          <div className="absolute top-0 left-4">
+            <h1 className="text-3xl text-gray-400">{peerId.slice(0, 6)}</h1>
+            <h1 className="text-5xl text-sky-400">{username}</h1>
+          </div>
+        </>
       )}
+    </>
+  )
+}
+
+function NoStream() {
+  return (
+    <div className="flex h-full w-full items-center justify-center bg-neutral-900">
+      <TbPlugConnectedX className="h-20 w-20 text-gray-700" />
+    </div>
+  )
+}
+
+function Loading() {
+  return (
+    <div className="flex h-full w-full items-center justify-center bg-neutral-900">
+      <CgSpinner className={`h-20 w-20 animate-[spin_1s_linear_infinite] text-sky-400`} />
     </div>
   )
 }

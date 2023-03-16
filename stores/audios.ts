@@ -8,7 +8,6 @@ type Store = {
 }
 
 type Actions = {
-  // setAudios: (devices: DeviceProps[]) => void
   getAudios: () => Promise<void>
 }
 
@@ -16,20 +15,17 @@ export const useAudiosStore = create<Store & Actions>((set, get) => ({
   audios: [],
   loading: false,
   error: '',
-  // setAudios: (devices: DeviceProps[]) => {
-  //   set(() => ({ audios: devices }))
-  // },
   getAudios: async () => {
-    set((state) => ({ loading: true }))
+    set(() => ({ loading: true }))
     return getAllDevices()
       .then(({ audios }) => {
-        set((state) => ({ audios, loading: false }))
+        set(() => ({ audios, loading: false }))
       })
       .catch((error) => {
-        set((state) => ({ error: 'Get devices failed.' }))
+        set(() => ({ error: error?.message ?? 'Get devices failed.' }))
       })
       .finally(() => {
-        set((state) => ({ loading: false }))
+        set(() => ({ loading: false }))
       })
   },
 }))

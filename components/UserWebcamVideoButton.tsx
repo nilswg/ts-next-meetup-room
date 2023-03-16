@@ -1,9 +1,14 @@
-import { useWebcamStreamStore } from '@/stores/webcamStream'
+import { useSockerPeerStore } from '@/stores/socketPeer'
 import { FaVideo, FaVideoSlash } from 'react-icons/fa'
 import CircleButton from './CircleButton'
 
 function UserWebcamVideoButton() {
-  const { video, setWebcamVideo } = useWebcamStreamStore()
+  const {
+    webcams,
+    setWebcamVideo,
+  } = useSockerPeerStore()
+
+  const { video } = webcams[0]
 
   const styles = video
     ? { bg: 'rgb(2 132 199)', icon: <FaVideo className="text-2xl" /> }

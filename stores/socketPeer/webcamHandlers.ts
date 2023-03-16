@@ -1,75 +1,85 @@
 import { MediaConnection } from 'peerjs'
-import { StoreGet, StoreSet } from '@/stores/socketPeer'
-import { PeerMetadata } from '@/stores/socketPeer'
+import { Store, StoreGet, StoreSet } from '@/stores/socketPeer'
 
 export const webcamHandlers = (get: StoreGet, set: StoreSet, call: MediaConnection, data: PeerMetadata) => {
   return {
     onStream: (remoteStream: MediaStream) => {
       if (data.streamType === 'webcam') {
-        const peerMap = get().peerMap
-        if (!peerMap.has(call.peer)) {
-          console.log('建立遠端串流, PeerId:', call.peer)
-          peerMap.set(call.peer, call)
+        const peerWebcamMap = get().peerWebcamMap
+        const userPeerId = data.userPeerId
+        const webcamPeerId = data.peerId
 
-          const metadata: PeerMetadata = call.metadata
+        if (!peerWebcamMap.has(userPeerId)) {
+          console.log('建立他人視訊')
+          console.log('建立peerWebcamMap', { userPeerId, webcamPeerId })
+          peerWebcamMap.set(userPeerId, { webcamPeerId, call })
 
           // webcam
-          set((state) => ({
-            remoteStreams: [
-              ...state.remoteStreams,
+          set((state: Store) => ({
+            webcams: [
+              ...state.webcams,
               {
-                id: call.peer,
-                stream: remoteStream,
+                type: 'remote',
+                peerId: data.peerId,
                 userId: data.userId,
+                stream: remoteStream,
+                error: '',
+                loading: false,
                 video: data.video,
                 audio: data.audio,
               },
             ],
           }))
         }
-      } else if (data.streamType === 'screen') {
-        const peerScreenMap = get().peerScreenMap
-        if (!peerScreenMap.has(call.peer)) {
-          const userPeerId = data.peerId
-          const screenPeerId = call.peer
+      // } else if (data.streamType === 'screen') {
+      //   const peerScreenMap = get().peerScreenMap
+      //   const userPeerId = data.userPeerId
+      //   const screenPeerId = data.peerId
 
-          console.log('建立他人畫面')
-          console.log('建立peerScreenMap', { userPeerId, screenPeerId })
-          peerScreenMap.set(userPeerId, { screenPeerId, call })
+      //   if (!peerScreenMap.has(data.userPeerId)) {
+      //     console.log('建立他人畫面')
+      //     console.log('建立peerScreenMap', { userPeerId, screenPeerId })
+      //     peerScreenMap.set(userPeerId, { screenPeerId, call })
 
-          // screen
-          set((state) => ({
-            remoteScreen: {
-              peerId: screenPeerId,
-              stream: remoteStream,
-              userId: data.userId,
-              video: data.video,
-              audio: data.audio,
-              frameRate: 30,
-              error: state.remoteScreen.error,
-              loading: state.remoteScreen.loading,
-            },
-          }))
-        }
+      //     // screen
+      //     set((state) => ({
+      //       screens: [
+      //         ...state.screens,
+      //         {
+      //           type: 'remote',
+      //           peerId: data.peerId,
+      //           userId: data.userId,
+      //           stream: remoteStream,
+      //           error: '',
+      //           loading: false,
+      //           video: data.video,
+      //           audio: data.audio,
+      //           frameRate: data.frameRate ?? 30,
+      //         },
+      //       ],
+      //     }))
+      //   }
       }
     },
     onClose: () => {
-      console.log('清除遠端串流, PeerId:', call.peer)
-
-      get().peerMap.delete(call.peer)
-
-      set((state) => ({
-        remoteStreams: state.remoteStreams.filter((s) => s.id !== call.peer),
-      }))
+      closeRemoteWebcam(get, set, data.userPeerId)
     },
     onError: (error: Error) => {
-      console.log('清除遠端串流, PeerId:', call.peer)
-
-      get().peerMap.delete(call.peer)
-
-      set((state) => ({
-        remoteStreams: state.remoteStreams.filter((s) => s.id !== call.peer),
-      }))
+      closeRemoteWebcam(get, set, data.userPeerId)
     },
   }
+}
+
+function closeRemoteWebcam(get: StoreGet, set: StoreSet, remoteUserPeerId: string) {
+  console.log('關閉用戶視訊串流', remoteUserPeerId)
+  const webcam = get().peerWebcamMap.get(remoteUserPeerId)
+  if (!webcam) return
+
+  console.log({ webcam })
+
+  get().peerWebcamMap.delete(remoteUserPeerId)
+
+  set((state) => ({
+    webcams: state.webcams.filter((e) => e.peerId !== webcam.webcamPeerId),
+  }))
 }
