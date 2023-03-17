@@ -159,7 +159,7 @@ const MeetLayout = ({
 
       {/* 下方視訊控制按鈕 */}
       <div className="flex justify-center">
-        <div className="flex w-[300px] flex-row items-center justify-center gap-2 rounded-b-full bg-neutral-200 pt-2 pb-3 dark:bg-neutral-600">
+        <div className="flex w-full max-w-[400px] flex-row items-center justify-center gap-2 rounded-t-full bg-neutral-200 pt-2 pb-3 dark:bg-neutral-600">
           <UserWebcamVideoButton />
           <UserWebcamAudioButton />
           <UserScreenShareButton roomId={roomId as string} userId={userId} />
