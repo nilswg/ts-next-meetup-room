@@ -15,15 +15,15 @@ const httpServer = createServer(app)
 const peerServer = ExpressPeerServer(httpServer)
 
 app.use(function (req, res, next) {
-  res.header('Access-Control-Allow-Origin', BASE_URL)
+  res.setHeader('Access-Control-Allow-Origin', '*')
   next()
 })
+
+app.use('/peerjs', peerServer)
 
 app.get('/', (req, res) => {
   res.status(200).json({ health: 'ok' })
 })
-
-app.use('/peerjs', peerServer)
 
 peerServer.on('connection', (client) => {
   console.log(`使用者連線: Id: ${client.getId().slice(0, 10)}`)
