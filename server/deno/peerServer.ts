@@ -14,13 +14,12 @@ const app = express()
 const httpServer = createServer(app)
 const peerServer = ExpressPeerServer(httpServer)
 
+app.use('/peerjs', peerServer)
+
 app.use(function (req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   next()
 })
-
-app.use('/peerjs', peerServer)
-
 app.get('/', (req, res) => {
   res.status(200).json({ health: 'ok' })
 })
