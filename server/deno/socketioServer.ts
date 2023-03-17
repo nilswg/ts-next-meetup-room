@@ -1,23 +1,19 @@
-// @ts-check
+import { serve } from 'https://deno.land/std@0.166.0/http/server.ts';
+import { Server } from 'https://deno.land/x/socket_io@0.2.0/mod.ts';
 
-const express = require('express')
-const app = express()
-const PORT = 4000
+console.log('DENO_ENV: ', Deno.env.get('DENO_ENV'))
 
-// https://socket.io/get-started/chat/
-const http = require('http')
-const httpServer = http.createServer(app)
-const { Server } = require('socket.io')
-const io = new Server(httpServer, {
+const isProd = Deno.env.get('DENO_ENV') === 'production';
+const PORT = isProd ? 80 : 4000
+const BASE_URL = isProd ? Deno.env.get('DENO_BASE_URL') : 'http://localhost:3000'
+
+const io = new Server({
   cors: {
-    // http://localhost:3000/ 會報錯，後面的 "/"不用加
-    origin: 'http://localhost:3000',
+    origin: [BASE_URL],
+    // allowedHeaders: ["my-header"],
+    // credentials: true,
   },
-})
-
-app.get('/', (req, res) => {
-  res.status(200).json({ health: 'ok' })
-})
+});
 
 // 監聽任何用戶連線
 // socket 是指連入的用戶端連線。
@@ -72,4 +68,14 @@ io.on('connection', (socket) => {
   })
 })
 
-httpServer.listen(PORT, () => console.log(`listening on ${PORT}`))
+function health(req: Request): Response {
+  const body = JSON.stringify({ health: 'ok' });
+  return new Response(body, {
+    status: 200,
+    headers: {
+      'content-type': 'application/json; charset=utf8',
+    },
+  });
+}
+
+serve(io.handler(health), { port: PORT });

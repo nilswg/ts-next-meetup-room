@@ -1,27 +1,28 @@
 // @ts-check
+console.log('NODE_ENV: ', process.env['NODE_ENV'])
+
+const PORT = process.env['NODE_ENV'] === 'production' ? 80 : 4001
 
 const express = require('express')
 const app = express()
-const PORT = 4001
 
 const http = require('http')
 const httpServer = http.createServer(app)
 
 const { ExpressPeerServer } = require('peer')
-const PeerServer = ExpressPeerServer(httpServer)
+const peerServer = ExpressPeerServer(httpServer)
 
 app.get('/', (req, res) => {
   res.status(200).json({ health: 'ok' })
 })
 
-// connect to .../peerjs
-app.use('/peerjs', PeerServer)
+app.use('/peerjs', peerServer)
 
-PeerServer.on('connection', (client) => {
+peerServer.on('connection', (client) => {
   console.log(`使用者連線: Id: ${client.getId().slice(0, 10)}`)
 })
 
-PeerServer.on('disconnect', (client) => {
+peerServer.on('disconnect', (client) => {
   console.log(`使用者離線: Id: ${client.getId().slice(0, 10)}`)
 })
 
