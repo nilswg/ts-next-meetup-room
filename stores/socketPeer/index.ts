@@ -3,9 +3,9 @@ import type { MediaConnection, Peer } from 'peerjs'
 import type { Socket } from 'socket.io-client'
 import { create } from 'zustand'
 import { createScreenStream } from './createScreenStream'
-import { enterMeeupRoom } from './enterMeeupRoom'
+import { enterMeetupRoom } from './enterMeetupRoom'
 import { handleWebcamStream } from './handleWebcamStream'
-import { leaveMeeupRoom } from './leaveMeeupRoom'
+import { leaveMeetupRoom } from './leaveMeetupRoom'
 import { removeScreenStream } from './removeScreenStream'
 import { removeWebcamStream } from './removeWebcamStream'
 import { resetWebcam } from './resetWebcam'
@@ -29,8 +29,8 @@ export type Store = {
 type Actions = {
   handleWebcamStream: (getWebcamStream: Promise<MediaStream>) => Promise<MediaStream>
   removeWebcamStream: () => void
-  enterMeeupRoom: (props: EnterRoomProps) => Promise<void>
-  leaveMeeupRoom: () => void
+  enterMeetupRoom: (props: EnterRoomProps) => Promise<void>
+  leaveMeetupRoom: () => void
   resetWebcam: (props: ResetWebcamProps) => void
   screenShare: (props: ShareScreenProps) => void
   stopScreenShare: (props: StopShareScreenProps) => void
@@ -51,7 +51,7 @@ export type StoreGet = () => Store
  */
 export type CreateStore<T> = (set: (f: (state: Store) => Partial<Store>) => void, get: () => Store) => T
 
-export const useSockerPeerStore = create<Store & Actions>((set, get) => ({
+export const useSocketPeerStore = create<Store & Actions>((set, get) => ({
   socket: null,
   myUserId: '',
   myUserPeerId: '',
@@ -88,8 +88,8 @@ export const useSockerPeerStore = create<Store & Actions>((set, get) => ({
   ],
   handleWebcamStream: handleWebcamStream(set, get),
   removeWebcamStream: removeWebcamStream(set, get),
-  enterMeeupRoom: enterMeeupRoom(set, get),
-  leaveMeeupRoom: leaveMeeupRoom(set, get),
+  enterMeetupRoom: enterMeetupRoom(set, get),
+  leaveMeetupRoom: leaveMeetupRoom(set, get),
   resetWebcam: resetWebcam(set, get),
   screenShare: screenShare(set, get),
   stopScreenShare: stopScreenShare(set, get),

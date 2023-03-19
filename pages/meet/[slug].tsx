@@ -4,7 +4,7 @@ import ScreenBox from '@/components/ScreenBox'
 import UserWebcamStreamBox from '@/components/UserWebcamStreamBox'
 import useClient from '@/hooks/useClient'
 import { useDevicesStore } from '@/stores/devices'
-import { useSockerPeerStore } from '@/stores/socketPeer'
+import { useSocketPeerStore } from '@/stores/socketPeer'
 import { NextPageContext } from 'next'
 import { useRouter } from 'next/router'
 import nookies from 'nookies'
@@ -33,8 +33,8 @@ const Meet = ({ cookies }: Props) => {
     screens: screensStore,
     handleWebcamStream,
     removeWebcamStream,
-  } = useSockerPeerStore()
-  const { webcamIds, microphoneIds, getWebcamStream, setMicrophoneIds, setWebcamIds } = useDevicesStore()
+  } = useSocketPeerStore()
+  const { webcamIds, microphoneIds, getWebcamStream } = useDevicesStore()
   const [webcams, setWebcams] = useState<WebcamProps[]>([])
   const [screens, setScreens] = useState<ScreenProps[]>([])
   const [fill, setFill] = useState(false)
@@ -53,18 +53,16 @@ const Meet = ({ cookies }: Props) => {
     })
   }, [socket, handleWebcamStream, getWebcamStream, resetWebcam])
 
-  // 進入meet分頁後，立刻啟動攝影機
   useClient(() => {
-    const webcamIds = {
-      id: cookies['WEBCAM_ID'],
-      groupId: cookies['WEBCAM_GROUP_ID'],
-    }
-    setWebcamIds(webcamIds)
-    const microphoneIds = {
-      id: cookies['MICROPHONE_ID'],
-      groupId: cookies['MICROPHONE_GROUP_ID'],
-    }
-    setMicrophoneIds(microphoneIds)
+    // const webcamIds = {
+    //   id: cookies['WEBCAM_ID'],
+    //   groupId: cookies['WEBCAM_GROUP_ID'],
+    // }
+    // const microphoneIds = {
+    //   id: cookies['MICROPHONE_ID'],
+    //   groupId: cookies['MICROPHONE_GROUP_ID'],
+    // }
+    // useDevicesStore.setState({ webcamIds, microphoneIds })
     setDone(true)
     return () => setDone(false)
   }, [])
@@ -219,7 +217,6 @@ export const getServerSideProps = (ctx: NextPageContext) => {
   return {
     props: {
       cookies: nookies.get(ctx),
-      uuid: require('crypto').randomUUID(),
     },
   }
 }
