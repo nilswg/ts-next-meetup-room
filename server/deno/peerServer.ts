@@ -4,7 +4,6 @@ console.log('DENO_ENV: ', Deno.env.get('DENO_ENV'))
 
 const isProd = Deno.env.get('DENO_ENV') === 'production'
 const PORT = isProd ? 80 : 4001
-const BASE_URL = isProd ? process.env['DENO_BASE_URL'] : 'http://localhost:3000' // 後面的 "/"不用加
 
 import express from './lib/express/express.min.ts'
 import { ExpressPeerServer } from './lib/peer/peer.min.ts'
@@ -16,10 +15,6 @@ const peerServer = ExpressPeerServer(httpServer)
 
 app.use('/peerjs', peerServer)
 
-app.use(function (req, res, next) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  next()
-})
 app.get('/', (req, res) => {
   res.status(200).json({ health: 'ok' })
 })
