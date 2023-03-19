@@ -1,13 +1,11 @@
 import useClient from '@/hooks/useClient'
 import { useDevicesStore } from '@/stores/devices'
-import { useSockerPeerStore } from '@/stores/socketPeer'
+import { useSocketPeerStore } from '@/stores/socketPeer'
 import { useRef } from 'react'
 
 function UserAudioSpeaker() {
   const { audioIds } = useDevicesStore()
-  const {
-    webcams,
-  } = useSockerPeerStore()
+  const { webcams } = useSocketPeerStore()
 
   const { stream } = webcams[0]
 

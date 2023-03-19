@@ -1,6 +1,6 @@
 import { StoreGet, StoreSet } from '.'
 
-export const leaveMeeupRoom = (set: StoreSet, get: StoreGet) => () => {
+export const leaveMeetupRoom = (set: StoreSet, get: StoreGet) => () => {
   // 關閉建立的連線。
   get().socket?.close()
   get().myWebcamPeer?.disconnect()

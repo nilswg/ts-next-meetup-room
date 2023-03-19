@@ -1,6 +1,4 @@
-import { useDevicesStore } from '@/stores/devices'
-import { useSockerPeerStore } from '@/stores/socketPeer'
-import { useEffect } from 'react'
+import { useSocketPeerStore } from '@/stores/socketPeer'
 import { ImPhoneHangUp, ImPhone } from 'react-icons/im'
 import CircleButton from './CircleButton'
 
@@ -10,22 +8,18 @@ type Props = {
 }
 
 const UserEnterRoomButton = ({ roomId, userId }: Props) => {
-  const {
-    socket,
-    enterMeeupRoom,
-    leaveMeeupRoom,
-  } = useSockerPeerStore()
+  const { socket, enterMeetupRoom, leaveMeetupRoom } = useSocketPeerStore()
 
   const leaveMeet = () => {
-    leaveMeeupRoom()
+    leaveMeetupRoom()
   }
 
   const startMeet = async () => {
     // 連線到 Socket Server
     if (!!socket) {
-      leaveMeeupRoom()
+      leaveMeetupRoom()
     }
-    enterMeeupRoom({
+    enterMeetupRoom({
       myRoomId: roomId,
       myUserId: userId,
     })

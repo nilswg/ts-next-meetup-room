@@ -8,14 +8,14 @@ import UserWebcamSelector from '@/components/UserWebcamSelector'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import useClient from '@/hooks/useClient'
 import { useDevicesStore } from '@/stores/devices'
-import { useSockerPeerStore } from '@/stores/socketPeer'
+import { useSocketPeerStore } from '@/stores/socketPeer'
 
 const WebcamePage = () => {
   const roomId = 'RoomId'
   const userId = 'UserId'
-  const { socket, resetWebcam } = useSockerPeerStore()
+  const { socket, resetWebcam } = useSocketPeerStore()
   const { webcamIds, microphoneIds, getWebcamStream } = useDevicesStore()
-  const { handleWebcamStream, removeWebcamStream } = useSockerPeerStore()
+  const { handleWebcamStream, removeWebcamStream } = useSocketPeerStore()
   const [done, setDone] = useState(false)
   const permission = useRef<PermissionStatus | null>(null)
 

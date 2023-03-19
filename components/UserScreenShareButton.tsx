@@ -1,5 +1,5 @@
-import { useSockerPeerStore } from '@/stores/socketPeer'
-import { useEffect } from 'react';
+import { useSocketPeerStore } from '@/stores/socketPeer'
+import { useEffect } from 'react'
 import { MdOutlineScreenShare, MdOutlineStopScreenShare } from 'react-icons/md'
 import CircleButton from './CircleButton'
 
@@ -9,10 +9,8 @@ type Props = {
 }
 
 const UserScreenShareButton = ({ roomId, userId = '' }: Props) => {
-  // const [isScreenShare, setIsScreenShare] = useState(false)
-  const { socket, screenShare, stopScreenShare, screens, createScreenStream, removeScreenStream } = useSockerPeerStore()
+  const { socket, screenShare, stopScreenShare, screens, createScreenStream, removeScreenStream } = useSocketPeerStore()
 
-  // userScreen
   const screen = screens[0]
   const remoteScreen = screens.filter((e) => e.type === 'remote')[0]
 

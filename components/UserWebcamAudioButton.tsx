@@ -1,4 +1,4 @@
-import { useSockerPeerStore } from '@/stores/socketPeer'
+import { useSocketPeerStore } from '@/stores/socketPeer'
 import { FaMicrophone, FaMicrophoneSlash } from 'react-icons/fa'
 import CircleButton from './CircleButton'
 
@@ -6,7 +6,7 @@ function UserWebcamAudioButton() {
   const {
     webcams,
     setWebcamAudio,
-  } = useSockerPeerStore()
+  } = useSocketPeerStore()
 
   const { audio } = webcams[0]
 

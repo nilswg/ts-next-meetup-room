@@ -1,12 +1,9 @@
-import { useSockerPeerStore } from '@/stores/socketPeer'
+import { useSocketPeerStore } from '@/stores/socketPeer'
 import { FaVideo, FaVideoSlash } from 'react-icons/fa'
 import CircleButton from './CircleButton'
 
 function UserWebcamVideoButton() {
-  const {
-    webcams,
-    setWebcamVideo,
-  } = useSockerPeerStore()
+  const { webcams, setWebcamVideo } = useSocketPeerStore()
 
   const { video } = webcams[0]
 

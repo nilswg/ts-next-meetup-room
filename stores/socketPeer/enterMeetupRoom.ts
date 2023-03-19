@@ -6,7 +6,7 @@ import { StoreGet, StoreSet } from '.'
 import createFakeStream from '@/lib/createFakeStream'
 import { createPeer, createSocketIo } from '@/lib/createConnection'
 
-export const enterMeeupRoom = (set: StoreSet, get: StoreGet) => async (props: EnterRoomProps) => {
+export const enterMeetupRoom = (set: StoreSet, get: StoreGet) => async (props: EnterRoomProps) => {
   const { myRoomId, myUserId } = props
   const res = await Promise.all([createSocketIo(), createPeer()])
   const socket = res[0].socket as Socket<ServerToClientEvents, ClientToServerEvents>
@@ -48,7 +48,7 @@ export const enterMeeupRoom = (set: StoreSet, get: StoreGet) => async (props: En
     myUserId,
     myUserPeerId,
     myWebcamPeer,
-    myWebcamPeerId,
+    myWebcamPeerId
   )
 
   socket.on('user-connected', userConnected)

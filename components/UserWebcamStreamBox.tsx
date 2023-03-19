@@ -1,4 +1,4 @@
-import { useSockerPeerStore } from '@/stores/socketPeer'
+import { useSocketPeerStore } from '@/stores/socketPeer'
 import { useState } from 'react'
 import { CgSpinner } from 'react-icons/cg'
 import { TbPlugConnectedX } from 'react-icons/tb'
@@ -10,7 +10,7 @@ type Props = {
 }
 
 const UserWebcamStreamBox = ({ username, fill = false }: Props) => {
-  const { myWebcamPeerId, webcams } = useSockerPeerStore()
+  const { myWebcamPeerId, webcams } = useSocketPeerStore()
   const { error, loading, stream } = webcams[0]
 
   return (
