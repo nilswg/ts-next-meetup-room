@@ -108,7 +108,7 @@ const Meet = ({ cookies }: Props) => {
         })
       }
 
-      console.log('numOfWebcams', _webcams)
+      // console.log('numOfWebcams', _webcams)
       setWebcams(_webcams)
     }
 
@@ -130,7 +130,7 @@ const Meet = ({ cookies }: Props) => {
       })
     }
 
-    console.log('numOfScreens', _screens)
+    // console.log('numOfScreens', _screens)
     setScreens(_screens)
 
     return () => {}

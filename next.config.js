@@ -1,7 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  pageExtensions: allowDevPage(['mdx', 'md', 'jsx', 'js', 'tsx', 'ts'])
+  pageExtensions: allowDevPage(['mdx', 'md', 'jsx', 'js', 'tsx', 'ts']),
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production"
+  },
 }
 
 module.exports = nextConfig
