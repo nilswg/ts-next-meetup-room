@@ -1,15 +1,20 @@
-import { createPeer } from "@/lib/createConnection";
-import { MediaConnection } from "peerjs";
-import type { StoreGet, StoreSet } from ".";
+import { createPeer } from '@/lib/createConnection'
+import { MediaConnection } from 'peerjs'
+import type { StoreGet, StoreSet } from '.'
+import { createScreenStream } from './createScreenStream'
 
 export const screenShare = (set: StoreSet, get: StoreGet) => async (props: ShareScreenProps) => {
   const socket = get().socket!
   const myUserPeerId = get().myUserPeerId!
-  const { myRoomId, myUserId, answerStream, video, audio } = props
+  const { myRoomId, myUserId } = props
+
+  set(() => ({ shareScreenLoading: true }))
+  const screenStream = await createScreenStream(set, get)()
+  const screen = get().screens[0]
 
   // 建立新的 Peer 連線，專門用來分享畫面
   const { peer: myScreenPeer, peerId: myScreenPeerId } = await createPeer()
-  set(() => ({ myScreenPeer, myScreenPeerId }))
+  set(() => ({ myScreenPeer, myScreenPeerId, shareScreenLoading: false }))
 
   // 所有連線設置完成(Socketio 與 Peerjs 皆建立連線)後，發起
   socket.emit('share-screen', myRoomId, myUserPeerId, {
@@ -17,8 +22,8 @@ export const screenShare = (set: StoreSet, get: StoreGet) => async (props: Share
     userPeerId: myUserPeerId,
     peerId: myScreenPeerId,
     streamType: 'screen',
-    video: video,
-    audio: audio,
+    video: screen.video,
+    audio: screen.audio,
     single: true,
   })
 
@@ -28,8 +33,8 @@ export const screenShare = (set: StoreSet, get: StoreGet) => async (props: Share
     console.log('[通知] 其他用戶向我請求畫面', { metadata, call })
 
     // 被動回應此來電
-    if (answerStream) {
-      call.answer(answerStream)
+    if (screenStream) {
+      call.answer(screenStream)
     }
 
     // 因為是單向的，不播放對方畫面

@@ -13,6 +13,8 @@ import { screenShare } from './screenShare'
 import { stopScreenShare } from './stopScreenShare'
 
 export type Store = {
+  enterRoomLoading: boolean
+  shareScreenLoading: boolean
   socket: Socket<ServerToClientEvents, ClientToServerEvents> | null
   myUserId: string
   myUserPeerId: string
@@ -52,6 +54,8 @@ export type StoreGet = () => Store
 export type CreateStore<T> = (set: (f: (state: Store) => Partial<Store>) => void, get: () => Store) => T
 
 export const useSocketPeerStore = create<Store & Actions>((set, get) => ({
+  enterRoomLoading: false,
+  shareScreenLoading: false,
   socket: null,
   myUserId: '',
   myUserPeerId: '',

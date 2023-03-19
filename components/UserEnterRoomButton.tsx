@@ -8,7 +8,7 @@ type Props = {
 }
 
 const UserEnterRoomButton = ({ roomId, userId }: Props) => {
-  const { socket, enterMeetupRoom, leaveMeetupRoom } = useSocketPeerStore()
+  const { socket, enterMeetupRoom, leaveMeetupRoom, enterRoomLoading: loading } = useSocketPeerStore()
 
   const leaveMeet = () => {
     leaveMeetupRoom()
@@ -30,7 +30,7 @@ const UserEnterRoomButton = ({ roomId, userId }: Props) => {
     : { bg: 'rgb(4 116 129)', icon: <ImPhone className="text-2xl" />, onClick: startMeet }
 
   return (
-    <CircleButton style={{ background: button.bg }} onClick={button.onClick}>
+    <CircleButton style={{ background: button.bg }} onClick={button.onClick} disabled={loading} loading={loading}>
       {button.icon}
     </CircleButton>
   )

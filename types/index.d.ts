@@ -49,25 +49,16 @@ type ScreenProps = {
 type EnterRoomProps = {
   myRoomId: string
   myUserId: string
-  // answerStream: MediaStream | null
-  // video: boolean
-  // audio: boolean
 }
 
 type ResetWebcamProps = {
   myRoomId: string
   myUserId: string
-  // newWebcamStream: MediaStream | null
-  // video: boolean
-  // audio: boolean
 }
 
 type ShareScreenProps = {
   myRoomId: string
   myUserId: string
-  answerStream: MediaStream | null
-  video: boolean
-  audio: boolean
 }
 
 type StopShareScreenProps = {

@@ -7,6 +7,7 @@ import createFakeStream from '@/lib/createFakeStream'
 import { createPeer, createSocketIo } from '@/lib/createConnection'
 
 export const enterMeetupRoom = (set: StoreSet, get: StoreGet) => async (props: EnterRoomProps) => {
+  set(() => ({ enterRoomLoading: true }))
   const { myRoomId, myUserId } = props
   const res = await Promise.all([createSocketIo(), createPeer()])
   const socket = res[0].socket as Socket<ServerToClientEvents, ClientToServerEvents>
@@ -22,7 +23,7 @@ export const enterMeetupRoom = (set: StoreSet, get: StoreGet) => async (props: E
    *
    * 3. 連線時自動獲取代表使用者的 PeerId；且也作為 webcam 連入 peerId
    */
-  set(() => ({ socket, myWebcamPeer, myUserPeerId, myWebcamPeerId }))
+  set(() => ({ socket, myWebcamPeer, myUserPeerId, myWebcamPeerId, enterRoomLoading: false }))
 
   // 監聽別人對我的來電 (當我加入房間，別人主動通知我)
   myWebcamPeer.on('call', (call: MediaConnection) => {

@@ -9,14 +9,21 @@ type Props = {
 }
 
 const UserScreenShareButton = ({ roomId, userId = '' }: Props) => {
-  const { socket, screenShare, stopScreenShare, screens, createScreenStream, removeScreenStream } = useSocketPeerStore()
+  const {
+    socket,
+    screenShare,
+    stopScreenShare,
+    screens,
+    removeScreenStream,
+    shareScreenLoading: loading,
+  } = useSocketPeerStore()
 
   const screen = screens[0]
   const remoteScreen = screens.filter((e) => e.type === 'remote')[0]
 
   const handleScreenShare = async () => {
     if (!roomId || Array.isArray(roomId)) {
-      alert('roomid is empty or invalid')
+      alert('roomId is empty or invalid')
       return
     }
 
@@ -25,15 +32,9 @@ const UserScreenShareButton = ({ roomId, userId = '' }: Props) => {
         alert('必須先進入房間')
         return
       }
-
-      const screenStream = await createScreenStream()
-
       screenShare({
         myRoomId: roomId,
         myUserId: userId,
-        answerStream: screenStream,
-        video: screen.video,
-        audio: screen.audio,
       })
     } catch (error) {
       console.error(error)
@@ -64,7 +65,8 @@ const UserScreenShareButton = ({ roomId, userId = '' }: Props) => {
     <CircleButton
       style={{ background: button.bg }}
       onClick={button.onClick}
-      disabled={!socket || !!remoteScreen?.stream}
+      disabled={!socket || !!remoteScreen?.stream || !!loading}
+      loading={loading}
     >
       {button.icon}
     </CircleButton>

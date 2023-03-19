@@ -1,13 +1,15 @@
 import type { ReactNode, CSSProperties } from 'react'
+import { CgSpinner } from 'react-icons/cg'
 
 type Props = {
   children: ReactNode
   style: CSSProperties
-  disabled?: boolean
   onClick: () => void
+  disabled?: boolean
+  loading?: boolean
 }
 
-const CircleButton = ({ children, style = {}, disabled = false, onClick }: Props) => {
+const CircleButton = ({ children, style = {}, onClick, disabled = false, loading = false }: Props) => {
   const btnStyles: CSSProperties = disabled
     ? { backgroundColor: 'rgb(75 85 99)', color: 'rgb(209 213 219)', pointerEvents: 'none' }
     : { ...style, pointerEvents: 'auto' }
@@ -22,9 +24,13 @@ const CircleButton = ({ children, style = {}, disabled = false, onClick }: Props
       disabled={disabled}
       onClick={onClick}
     >
-      {children}
+      {loading ? <Loading /> : <>{children}</>}
     </button>
   )
+}
+
+function Loading() {
+  return <CgSpinner className={`h-6 w-6 animate-[spin_1s_linear_infinite] text-white`} />
 }
 
 export default CircleButton
