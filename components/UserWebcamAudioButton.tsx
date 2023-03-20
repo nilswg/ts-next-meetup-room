@@ -1,12 +1,12 @@
+import { usePermissionsStore } from '@/stores/permissions'
 import { useSocketPeerStore } from '@/stores/socketPeer'
 import { FaMicrophone, FaMicrophoneSlash } from 'react-icons/fa'
 import CircleButton from './CircleButton'
 
 function UserWebcamAudioButton() {
-  const {
-    webcams,
-    setWebcamAudio,
-  } = useSocketPeerStore()
+  const { webcams, setWebcamAudio } = useSocketPeerStore()
+
+  const { microphonePermission } = usePermissionsStore()
 
   const { audio } = webcams[0]
 
@@ -18,7 +18,12 @@ function UserWebcamAudioButton() {
     setWebcamAudio(!audio)
   }
   return (
-    <CircleButton style={{ background: styles.bg }} onClick={handleAudio}>
+    <CircleButton
+      style={{ background: styles.bg }}
+      onClick={handleAudio}
+      disabled={!microphonePermission}
+      disabledText={'請開啟麥克風權限'}
+    >
       {styles.icon}
     </CircleButton>
   )

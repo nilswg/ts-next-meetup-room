@@ -66,6 +66,7 @@ const UserScreenShareButton = ({ roomId, userId = '' }: Props) => {
       style={{ background: button.bg }}
       onClick={button.onClick}
       disabled={!socket || !!remoteScreen?.stream || !!loading}
+      disabledText={!!socket ? '已經有人在分享畫面' : '通話後才能分享畫面'}
       loading={loading}
     >
       {button.icon}

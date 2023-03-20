@@ -1,7 +1,7 @@
 import { useSocketPeerStore } from '@/stores/socketPeer'
 import { useState } from 'react'
 import { CgSpinner } from 'react-icons/cg'
-import { TbPlugConnectedX } from 'react-icons/tb'
+import { BsCameraVideoOff } from 'react-icons/bs'
 import VideoBox from './VideoBox'
 
 type Props = {
@@ -25,13 +25,7 @@ const UserWebcamStreamBox = ({ username, fill = false }: Props) => {
       {loading ? (
         <Loading />
       ) : (
-        <VideoBox
-          stream={stream}
-          peerId={myWebcamPeerId}
-          username={username}
-          fill={fill}
-          flipVideo={flipMyVideo}
-        />
+        <VideoBox stream={stream} peerId={myWebcamPeerId} username={username} fill={fill} flipVideo={flipMyVideo} />
       )}
     </>
   )
@@ -40,7 +34,7 @@ const UserWebcamStreamBox = ({ username, fill = false }: Props) => {
 function NoStream() {
   return (
     <div className="flex h-full w-full items-center justify-center bg-neutral-900">
-      <TbPlugConnectedX className="h-20 w-20 text-gray-700" />
+      <BsCameraVideoOff className="h-20 w-20 text-gray-700" />
     </div>
   )
 }

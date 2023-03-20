@@ -4,7 +4,9 @@ import ScreenBox from '@/components/ScreenBox'
 import UserWebcamStreamBox from '@/components/UserWebcamStreamBox'
 import useClient from '@/hooks/useClient'
 import { useDevicesStore } from '@/stores/devices'
+import { usePermissionsStore } from '@/stores/permissions'
 import { useSocketPeerStore } from '@/stores/socketPeer'
+import { useWebcamsStore } from '@/stores/webcams'
 import { NextPageContext } from 'next'
 import { useRouter } from 'next/router'
 import nookies from 'nookies'
@@ -36,11 +38,13 @@ const Meet = ({ cookies }: Props) => {
     setMyUserId,
   } = useSocketPeerStore()
   const { webcamIds, microphoneIds, getMediaStreamConstraints } = useDevicesStore()
+  const { usePermissionQuery, setWebcamPermission, setMicrophonePermission } = usePermissionsStore()
   const [webcams, setWebcams] = useState<WebcamProps[]>([])
   const [screens, setScreens] = useState<ScreenProps[]>([])
   const [fill, setFill] = useState(false)
   const [done, setDone] = useState(false)
-  const permission = useRef<PermissionStatus | null>(null)
+  const webcamPermission = useRef<PermissionStatus | null>(null)
+  const microphonePermission = useRef<PermissionStatus | null>(null)
 
   const createWebcamStreamCallback = useCallback(async () => {
     console.log('createWebcamStream')
@@ -63,28 +67,50 @@ const Meet = ({ cookies }: Props) => {
   /** 如果使用者切換了攝影鏡頭，必須重新建立連線 */
   useEffect(() => {
     if (!!done) {
-      console.log('permissions query')
-      navigator.permissions.query({ name: 'camera' } as any).then((ps: PermissionStatus) => {
-        permission.current = ps
-        permission.current.onchange = function (f) {
-          console.log('camera permission state has changed to ', this.state)
-          if (this.state === 'granted' || this.state === 'prompt') {
+      usePermissionQuery('camera').then(([state, permission]) => {
+        const webcamPermissionChange = () => {
+          // 使用通話功能前，必須開啟攝影機權限
+          webcamPermission.current = permission
+          console.log('webcam permission change state:', permission.state)
+          setWebcamPermission(permission.state === 'granted')
+
+          if (permission.state === 'granted') {
             createWebcamStreamCallback()
-          } else if (this.state === 'denied') {
+          } else if (permission.state === 'denied') {
             removeWebcamStream()
+            alert('通話功能前，請先開啟攝影機權限 🙏')
+          } else if (permission.state === 'prompt') {
+            removeWebcamStream()
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
           }
         }
-        createWebcamStreamCallback()
+
+        permission.onchange = webcamPermissionChange
+        webcamPermissionChange()
+      })
+
+      usePermissionQuery('microphone').then(([state, permission]) => {
+        microphonePermission.current = permission
+        const microphonePermissionChange = () => {
+          console.log('microphone permission change state:', permission.state)
+          setMicrophonePermission(permission.state === 'granted')
+        }
+
+        permission.onchange = microphonePermissionChange
+        microphonePermissionChange()
       })
     }
     return () => {
       console.log('remove')
-      removeWebcamStream()
-
-      if (permission.current) {
-        permission.current.onchange = null
-        permission.current = null
+      if (webcamPermission.current) {
+        webcamPermission.current.onchange = null
+        webcamPermission.current = null
       }
+      if (microphonePermission.current) {
+        microphonePermission.current.onchange = null
+        microphonePermission.current = null
+      }
+      removeWebcamStream()
     }
   }, [webcamIds.id, webcamIds.groupId, microphoneIds.id, microphoneIds.groupId, done])
 
