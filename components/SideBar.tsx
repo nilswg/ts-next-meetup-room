@@ -1,5 +1,4 @@
 import { useSidebarStore } from '@/stores/sidebar'
-import { useEffect } from 'react'
 import { TbArrowBarLeft, TbArrowBarRight } from 'react-icons/tb'
 import UserAudioSelector from './UserAudioSelector'
 import UserMicrophoneSelector from './UserMicrophoneSelector'

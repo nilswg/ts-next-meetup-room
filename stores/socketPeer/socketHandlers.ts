@@ -50,7 +50,7 @@ export const socketHandlers = (
       if (myScreenPeerId && myScreenPeer) {
         console.log('目前正在分享螢幕, ScreenPeerId:', myScreenPeerId)
 
-        // 所有連線設置完成(Socketio 與 Peerjs 皆建立連線)後，發起
+        // 所有連線設置完成(Socket.io 與 Peerjs 皆建立連線)後，發起
         socket.emit('share-screen', roomId, userPeerId, {
           userId: userId,
           userPeerId: userPeerId,
@@ -94,8 +94,12 @@ export const socketHandlers = (
 
       // 接受方可能沒有分享畫面。
       if (!get().myScreenPeer) {
-        const { peer: myScreenPeer, peerId: myScreenPeerId } = await createPeer()
-        set(() => ({ myScreenPeer, myScreenPeerId }))
+        try {
+          const { peer: myScreenPeer, peerId: myScreenPeerId } = await createPeer()
+          set(() => ({ myScreenPeer, myScreenPeerId }))
+        } catch (error) {
+          throw error
+        }
       }
 
       // 單向對方視訊播放
