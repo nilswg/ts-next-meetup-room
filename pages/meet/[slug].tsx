@@ -31,19 +31,20 @@ const Meet = ({ cookies }: Props) => {
     resetWebcam,
     webcams: webcamsStore,
     screens: screensStore,
-    handleWebcamStream,
     removeWebcamStream,
+    createWebcamStream,
+    setMyUserId,
   } = useSocketPeerStore()
-  const { webcamIds, microphoneIds, getWebcamStream } = useDevicesStore()
+  const { webcamIds, microphoneIds, getMediaStreamConstraints } = useDevicesStore()
   const [webcams, setWebcams] = useState<WebcamProps[]>([])
   const [screens, setScreens] = useState<ScreenProps[]>([])
   const [fill, setFill] = useState(false)
   const [done, setDone] = useState(false)
   const permission = useRef<PermissionStatus | null>(null)
 
-  const createWebcamStream = useCallback(() => {
+  const createWebcamStreamCallback = useCallback(async () => {
     console.log('createWebcamStream')
-    handleWebcamStream(getWebcamStream()).then(() => {
+    createWebcamStream(await getMediaStreamConstraints()).then(() => {
       if (!!socket) {
         resetWebcam({
           myRoomId: roomId as string,
@@ -51,18 +52,10 @@ const Meet = ({ cookies }: Props) => {
         })
       }
     })
-  }, [socket, handleWebcamStream, getWebcamStream, resetWebcam])
+  }, [socket, getMediaStreamConstraints, createWebcamStream, resetWebcam])
 
   useClient(() => {
-    // const webcamIds = {
-    //   id: cookies['WEBCAM_ID'],
-    //   groupId: cookies['WEBCAM_GROUP_ID'],
-    // }
-    // const microphoneIds = {
-    //   id: cookies['MICROPHONE_ID'],
-    //   groupId: cookies['MICROPHONE_GROUP_ID'],
-    // }
-    // useDevicesStore.setState({ webcamIds, microphoneIds })
+    setMyUserId(userId)
     setDone(true)
     return () => setDone(false)
   }, [])
@@ -76,12 +69,12 @@ const Meet = ({ cookies }: Props) => {
         permission.current.onchange = function (f) {
           console.log('camera permission state has changed to ', this.state)
           if (this.state === 'granted' || this.state === 'prompt') {
-            createWebcamStream()
+            createWebcamStreamCallback()
           } else if (this.state === 'denied') {
             removeWebcamStream()
           }
         }
-        createWebcamStream()
+        createWebcamStreamCallback()
       })
     }
     return () => {

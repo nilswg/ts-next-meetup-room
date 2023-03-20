@@ -13,15 +13,25 @@ const UserWebcamStreamBox = ({ username, fill = false }: Props) => {
   const { myWebcamPeerId, webcams } = useSocketPeerStore()
   const { error, loading, stream } = webcams[0]
 
+  if (!stream) {
+    return <NoStream />
+  }
+
+  const flipMyVideo = !(stream!.getVideoTracks()[0] as MediaStreamTrack & { noFlip: boolean }).noFlip
+
   return (
     <>
       {error && <Error err={error} />}
       {loading ? (
         <Loading />
-      ) : !stream ? (
-        <NoStream />
       ) : (
-        <VideoBox stream={stream} peerId={myWebcamPeerId} username={username} fill={fill} />
+        <VideoBox
+          stream={stream}
+          peerId={myWebcamPeerId}
+          username={username}
+          fill={fill}
+          flipVideo={flipMyVideo}
+        />
       )}
     </>
   )

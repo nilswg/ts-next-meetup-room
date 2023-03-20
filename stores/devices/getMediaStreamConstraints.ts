@@ -1,7 +1,7 @@
 import getAllDevices from '@/lib/getAllDevices'
 import type { StoreGet, StoreSet } from '.'
 
-export const getWebcamStream = (set: StoreSet, get: StoreGet) => (): Promise<MediaStream> => {
+export const getMediaStreamConstraints = (set: StoreSet, get: StoreGet) => (): Promise<MediaStreamConstraints> => {
   const webcamId = get().webcamIds.id
   const webcamGroupId = get().webcamIds.groupId
   const microphoneId = get().microphoneIds.id
@@ -10,14 +10,16 @@ export const getWebcamStream = (set: StoreSet, get: StoreGet) => (): Promise<Med
   // console.log('getWebcamStream', { webcamId, webcamGroupId })
 
   return new Promise((resolve, reject) => {
-    getAllDevices().then(({ webcams, microphones, audios }) => {
-      navigator.mediaDevices
+    getAllDevices()
+      .then(({ webcams, microphones, audios }) => {
         // 如果沒有視訊鏡頭或是麥克風設備，就會被設置為 false。
-        .getUserMedia({
+        const constraints = {
           video: webcams.length > 0 ? { deviceId: webcamId, groupId: webcamGroupId } : false,
           audio: microphones.length > 0 ? { deviceId: microphoneId, groupId: microphoneGroupId } : false,
-        })
-        .then((stream) => resolve(stream))
-    })
+        }
+        console.log({ constraints })
+        resolve(constraints)
+      })
+      .catch((error) => reject(error))
   })
 }

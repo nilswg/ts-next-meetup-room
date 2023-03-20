@@ -3,8 +3,8 @@ import type { MediaConnection, Peer } from 'peerjs'
 import type { Socket } from 'socket.io-client'
 import { create } from 'zustand'
 import { createScreenStream } from './createScreenStream'
+import { createWebcamStream } from './createWebcamStream'
 import { enterMeetupRoom } from './enterMeetupRoom'
-import { handleWebcamStream } from './handleWebcamStream'
 import { leaveMeetupRoom } from './leaveMeetupRoom'
 import { removeScreenStream } from './removeScreenStream'
 import { removeWebcamStream } from './removeWebcamStream'
@@ -29,7 +29,7 @@ export type Store = {
 }
 
 type Actions = {
-  handleWebcamStream: (getWebcamStream: Promise<MediaStream>) => Promise<MediaStream>
+  createWebcamStream: (getWebcamStream: MediaStreamConstraints) => Promise<MediaStream>
   removeWebcamStream: () => void
   enterMeetupRoom: (props: EnterRoomProps) => Promise<void>
   leaveMeetupRoom: () => void
@@ -42,6 +42,7 @@ type Actions = {
   setWebcamAudio: (audio: boolean) => void
   setRemoteVideo: (remotePeerId: string, nextState: boolean) => void
   setRemoteAudio: (remotePeerId: string, nextState: boolean) => void
+  setMyUserId: (myUserId: string) => void
 }
 
 export type StoreSet = (f: (state: Store) => Partial<Store>) => void
@@ -90,7 +91,7 @@ export const useSocketPeerStore = create<Store & Actions>((set, get) => ({
       frameRate: 30,
     },
   ],
-  handleWebcamStream: handleWebcamStream(set, get),
+  createWebcamStream: createWebcamStream(set, get),
   removeWebcamStream: removeWebcamStream(set, get),
   enterMeetupRoom: enterMeetupRoom(set, get),
   leaveMeetupRoom: leaveMeetupRoom(set, get),
@@ -128,5 +129,8 @@ export const useSocketPeerStore = create<Store & Actions>((set, get) => ({
       return
     }
     remote.stream.getAudioTracks().forEach((t) => (t.enabled = nextState))
+  },
+  setMyUserId: (myUserId: string) => {
+    set((state) => ({ ...state, myUserId }))
   },
 }))

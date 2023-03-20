@@ -13,12 +13,11 @@ type Props = {
 }
 
 const SidebarPage = ({ cookies }: Props) => {
-  const router = useRouter()
-  const { slug: roomId } = router.query
+  const { slug: roomId } = useRouter().query as { slug: string }
   const [userId, setUserId] = useState(cookies['USER_ID'])
   return (
     <>
-      <Button/>
+      <Button />
       <SideBar roomId={roomId as string} userId={userId} />
       <UserWebcamVideoButton />
       <UserWebcamAudioButton />
@@ -34,7 +33,6 @@ export const getServerSideProps = (ctx: NextPageContext) => {
   return {
     props: {
       cookies: nookies.get(ctx),
-      uuid: require('crypto').randomUUID(),
     },
   }
 }

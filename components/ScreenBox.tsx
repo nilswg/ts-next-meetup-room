@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { CgSpinner } from 'react-icons/cg'
 import { TbPlugConnectedX } from 'react-icons/tb'
 
+const isProd = process.env['NODE_ENV'] === 'production'
+
 type Props = {
   peerId: string
   stream: MediaStream | null
@@ -43,8 +45,12 @@ const ScreenBox = ({ peerId, stream = null, username = '' }: Props) => {
         <>
           <video ref={ref} className="h-full w-full bg-black object-contain" src=""></video>
           <div className="absolute top-0 left-4">
-            <h1 className="text-3xl text-gray-400">{peerId.slice(0, 6)}</h1>
-            <h1 className="text-5xl text-sky-400">{username}</h1>
+            {!isProd && (
+              <>
+                <h1 className="text-3xl text-gray-400">{peerId.slice(0, 6)}</h1>
+                <h1 className="text-5xl text-sky-400">{username}</h1>
+              </>
+            )}
           </div>
         </>
       )}

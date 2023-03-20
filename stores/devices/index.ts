@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { getWebcamStream } from './getWebcamStream'
+import { getMediaStreamConstraints } from './getMediaStreamConstraints'
 
 type Store = {
   webcamIds: DeviceIDs // 視訊鏡頭
@@ -12,7 +12,7 @@ type Actions = {
   setWebcamIds: (ids: DeviceIDs) => void
   setMicrophoneIds: (ids: DeviceIDs) => void
   setAudioIds: (ids: DeviceIDs) => void
-  getWebcamStream: () => Promise<MediaStream>
+  getMediaStreamConstraints: () => Promise<MediaStreamConstraints>
 }
 
 export type StoreSet = (f: (state: Store) => Partial<Store>) => void
@@ -33,28 +33,12 @@ export const useDevicesStore = create(
       setMicrophoneIds: (ids: DeviceIDs) => {
         const microphoneId = ids?.id ?? get().microphoneIds.id ?? ''
         const microphoneGroupId = ids?.groupId ?? get().microphoneIds.groupId ?? ''
-        // setCookie(null, 'MICROPHONE_ID', ids.id, {
-        //   maxAge: 30 * 24 * 60 * 60,
-        //   path: '/',
-        // })
-        // setCookie(null, 'MICROPHONE_GROUP_ID', ids.groupId, {
-        //   maxAge: 30 * 24 * 60 * 60,
-        //   path: '/',
-        // })
         set(() => ({ microphoneIds: { id: microphoneId, groupId: microphoneGroupId } }))
       },
       setAudioIds: (ids: DeviceIDs) => {
-        // setCookie(null, 'AUDIO_ID', ids.id, {
-        //   maxAge: 30 * 24 * 60 * 60,
-        //   path: '/',
-        // })
-        // setCookie(null, 'AUDIO_GROUP_ID', ids.groupId, {
-        //   maxAge: 30 * 24 * 60 * 60,
-        //   path: '/',
-        // })
         set(() => ({ audioIds: ids }))
       },
-      getWebcamStream: getWebcamStream(set, get),
+      getMediaStreamConstraints: getMediaStreamConstraints(set, get),
     }),
     { name: 'devices' }
   )

@@ -1,36 +1,39 @@
 import useClient from '@/hooks/useClient'
-import Image from 'next/image'
 import { CSSProperties, ReactNode, useCallback, useRef, useState } from 'react'
-import { TbPlugConnectedX, TbFlipVertical } from 'react-icons/tb'
+import { TbFlipVertical } from 'react-icons/tb'
 
-import test from '/public/test.jpg'
+// import Image from 'next/image'
+// import test from '/public/test.jpg'
+
+const isProd = process.env['NODE_ENV'] === 'production'
 
 type Props = {
   peerId: string
   stream: MediaStream
   username: string
-  fill:boolean
+  fill: boolean
+  flipVideo?: boolean
 }
 
-const VideoBox = ({ peerId, stream, username = '', fill }: Props) => {
+const VideoBox = ({ peerId, stream, username = '', fill, flipVideo = false }: Props) => {
   const ref = useRef<HTMLVideoElement | null>(null)
-  const [flip, setFlip] = useState(true)
+  const [flip, setFlip] = useState(flipVideo)
 
   const playVideo = useCallback(() => {
-    // console.log('videobox play')
+    // console.log('video box play')
     if (ref?.current) {
       ref.current.play()
     }
   }, [ref])
 
   useClient(() => {
-    // console.log('videobox mount')
+    // console.log('video box mount')
     if (ref?.current) {
       ref.current.srcObject = stream
       ref.current.addEventListener('loadedmetadata', playVideo)
     }
     return () => {
-      // console.log('videobox unmount')
+      // console.log('video box unmount')
       if (ref?.current) {
         ref.current.removeEventListener('loadedmetadata', playVideo)
         stream.getTracks().forEach((track) => track.stop())
@@ -52,15 +55,18 @@ const VideoBox = ({ peerId, stream, username = '', fill }: Props) => {
       {/* <Image src={test} alt="" fill className="object-contain" /> */}
       <video ref={ref} className={`${fillStyles} object-contain ${flipCamera}`} src=""></video>
       <div className="absolute top-2 right-4">
-        <div className="text-4xl text-sky-400">{username}</div>
-        <div className="text-2xl text-teal-400">{peerId.slice(0, 6)}</div>
+        {!isProd && (
+          <>
+            <div className="text-4xl text-sky-400">{username}</div>
+            <div className="text-2xl text-teal-400">{peerId.slice(0, 6)}</div>
+          </>
+        )}
         <Button style={{ backgroundColor: '' }} onClick={handleFlip}>
           <TbFlipVertical className="h-5 w-5" />
           <span className="sr-only">Flip Camera</span>
         </Button>
       </div>
     </>
-
   )
 }
 

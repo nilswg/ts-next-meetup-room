@@ -10,18 +10,18 @@ import useClient from '@/hooks/useClient'
 import { useDevicesStore } from '@/stores/devices'
 import { useSocketPeerStore } from '@/stores/socketPeer'
 
-const WebcamePage = () => {
+const WebcamPage = () => {
   const roomId = 'RoomId'
   const userId = 'UserId'
   const { socket, resetWebcam } = useSocketPeerStore()
-  const { webcamIds, microphoneIds, getWebcamStream } = useDevicesStore()
-  const { handleWebcamStream, removeWebcamStream } = useSocketPeerStore()
+  const { webcamIds, microphoneIds, getMediaStreamConstraints } = useDevicesStore()
+  const { createWebcamStream, removeWebcamStream } = useSocketPeerStore()
   const [done, setDone] = useState(false)
   const permission = useRef<PermissionStatus | null>(null)
 
-  const createWebcamStream = useCallback(() => {
+  const createWebcamStreamCallback = useCallback(async () => {
     console.log('createWebcamStream')
-    handleWebcamStream(getWebcamStream()).then(() => {
+    createWebcamStream(await getMediaStreamConstraints()).then(() => {
       if (!!socket) {
         resetWebcam({
           myRoomId: roomId as string,
@@ -29,7 +29,7 @@ const WebcamePage = () => {
         })
       }
     })
-  }, [socket, handleWebcamStream, getWebcamStream, resetWebcam])
+  }, [socket, createWebcamStream, getMediaStreamConstraints, resetWebcam])
 
   // 進入meet分頁後，立刻啟動攝影機
   useClient(() => {
@@ -46,12 +46,12 @@ const WebcamePage = () => {
         permission.current.onchange = function (f) {
           console.log('camera permission state has changed to ', this.state)
           if (this.state === 'granted' || this.state === 'prompt') {
-            createWebcamStream()
+            createWebcamStreamCallback()
           } else if (this.state === 'denied') {
             removeWebcamStream()
           }
         }
-        createWebcamStream()
+        createWebcamStreamCallback()
       })
     }
     return () => {
@@ -67,7 +67,7 @@ const WebcamePage = () => {
 
   return (
     <div className="pt-[5rem] text-white">
-      <h1>WebcamePage</h1>
+      <h1>WebcamPage</h1>
       <div className="grid auto-rows-[400px] grid-cols-[repeat(auto-fill,_400px)]">
         <UserWebcamStreamBox username="Test" />
         <div className="p-4">
@@ -89,4 +89,4 @@ const WebcamePage = () => {
   )
 }
 
-export default WebcamePage
+export default WebcamPage
