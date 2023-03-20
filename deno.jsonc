@@ -1,0 +1,6 @@
+{
+  "tasks": {
+    "socketio": "denon run -A server/deno/socketioServer.ts",
+    "peer": "denon run -A server/deno/peerServer.ts"
+  }
+}
