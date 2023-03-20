@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { CgSpinner } from 'react-icons/cg'
-import { TbPlugConnectedX } from 'react-icons/tb'
+import { TbScreenShareOff } from 'react-icons/tb'
 
 const isProd = process.env['NODE_ENV'] === 'production'
 
@@ -35,25 +35,25 @@ const ScreenBox = ({ peerId, stream = null, username = '' }: Props) => {
     }
   }, [])
 
+  if (!!loading) {
+    return <Loading />
+  }
+
+  if (!stream) {
+    return <NoStream />
+  }
+
   return (
     <>
-      {loading ? (
-        <Loading />
-      ) : !stream ? (
-        <NoStream />
-      ) : (
-        <>
-          <video ref={ref} className="h-full w-full bg-black object-contain" src=""></video>
-          <div className="absolute top-0 left-4">
-            {!isProd && (
-              <>
-                <h1 className="text-3xl text-gray-400">{peerId.slice(0, 6)}</h1>
-                <h1 className="text-5xl text-sky-400">{username}</h1>
-              </>
-            )}
-          </div>
-        </>
-      )}
+      <video ref={ref} className="h-full w-full bg-black object-contain" src=""></video>
+      <div className="absolute top-0 left-4">
+        {!isProd && (
+          <>
+            <h1 className="text-3xl text-gray-400">{peerId.slice(0, 6)}</h1>
+            <h1 className="text-5xl text-sky-400">{username}</h1>
+          </>
+        )}
+      </div>
     </>
   )
 }
@@ -61,7 +61,7 @@ const ScreenBox = ({ peerId, stream = null, username = '' }: Props) => {
 function NoStream() {
   return (
     <div className="flex h-full w-full items-center justify-center bg-neutral-900">
-      <TbPlugConnectedX className="h-20 w-20 text-gray-700" />
+      <TbScreenShareOff className="h-20 w-20 text-gray-700" />
     </div>
   )
 }

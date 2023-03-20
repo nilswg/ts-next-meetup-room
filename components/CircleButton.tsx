@@ -7,12 +7,42 @@ type Props = {
   onClick: () => void
   disabled?: boolean
   loading?: boolean
+  disabledText?: string | null
 }
 
-const CircleButton = ({ children, style = {}, onClick, disabled = false, loading = false }: Props) => {
+const CircleButton = ({
+  children,
+  style = {},
+  onClick,
+  disabled = false,
+  loading = false,
+  disabledText = null,
+}: Props) => {
   const btnStyles: CSSProperties = disabled
     ? { backgroundColor: 'rgb(75 85 99)', color: 'rgb(209 213 219)', pointerEvents: 'none' }
     : { ...style, pointerEvents: 'auto' }
+
+  if (!!disabled) {
+    return (
+      <div className="tooltip" data-tip={disabledText}>
+        <button className="btn-outline btn-circle btn" disabled={disabled}>
+          {children}
+        </button>
+      </div>
+    )
+  }
+
+  if (!!loading) {
+    return (
+      <button
+        type="button"
+        className={`inline-flex justify-center rounded-full p-3 text-xs font-medium uppercase leading-normal text-white shadow-md transition duration-150 ease-in-out hover:shadow-lg focus:shadow-lg focus:outline-none focus:ring-0 active:shadow-lg`}
+        style={btnStyles}
+      >
+        <Loading />
+      </button>
+    )
+  }
 
   return (
     <button
@@ -24,7 +54,7 @@ const CircleButton = ({ children, style = {}, onClick, disabled = false, loading
       disabled={disabled}
       onClick={onClick}
     >
-      {loading ? <Loading /> : <>{children}</>}
+      {children}
     </button>
   )
 }
